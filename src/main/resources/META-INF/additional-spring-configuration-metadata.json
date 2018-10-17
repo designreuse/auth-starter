@@ -1,0 +1,17 @@
+{
+  "hints": [],
+  "groups": [
+    {
+      "sourceType": "com.gramant.auth.AuthProperties",
+      "name": "auth-starter",
+      "type": "authStarterProperties"
+    }
+  ],
+  "properties": [
+    {
+      "sourceType": "com.gramant.auth.AuthProperties",
+      "name": "auth-starter.username",
+      "type": "java.lang.String"
+    }
+  ]
+}
