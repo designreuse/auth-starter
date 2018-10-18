@@ -12,14 +12,8 @@ import com.gramant.auth.ports.rest.request.PasswordResetRequest;
 import com.gramant.auth.ports.rest.request.PasswordUpdateRequest;
 import com.gramant.auth.ports.rest.request.UpdateActivityRequest;
 import lombok.AllArgsConstructor;
-import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.core.io.Resource;
 import org.springframework.http.ResponseEntity;
-import org.springframework.util.StreamUtils;
 import org.springframework.web.bind.annotation.*;
-
-import java.io.IOException;
-import java.nio.charset.Charset;
 
 @RestController
 @RequestMapping("/api/users")
@@ -28,7 +22,6 @@ public class UserResource {
 
     private final ManageUser userManager;
     private final PasswordResetOperations passwordResetOperations;
-    @Qualifier("disclaimer") private Resource disclaimer;
 
     @PutMapping("/deactivation")
     public ResponseEntity deactivateAll(@RequestBody UpdateActivityRequest request) {
@@ -66,10 +59,5 @@ public class UserResource {
             throws PasswordResetTokenExpiredException, PasswordResetTokenNotFoundException, UserMissingException {
         passwordResetOperations.updatePassword(passwordUpdateRequest);
         return ResponseEntity.ok().build();
-    }
-
-    @GetMapping("/disclaimer")
-    public ResponseEntity<String> disclaimer() throws IOException {
-        return ResponseEntity.ok(StreamUtils.copyToString(disclaimer.getInputStream(), Charset.defaultCharset()));
     }
 }
