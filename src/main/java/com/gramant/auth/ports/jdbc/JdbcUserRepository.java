@@ -36,7 +36,7 @@ public class JdbcUserRepository implements UserRepository {
     @Transactional(readOnly = true)
     public Optional<User> findByEmail(String email) {
         List<UserData> users = jdbcTemplate.query(
-                "SELECT id, email, password, enabled, last_login FROM juser WHERE email = ?",
+                "SELECT id, email, password, enabled, last_login FROM users WHERE email = ?",
                 new Object[] {email},
                 USER_DATA_ROW_MAPPER);
 
@@ -47,7 +47,7 @@ public class JdbcUserRepository implements UserRepository {
     @Transactional(readOnly = true)
     public Optional<User> get(UserId userId) {
         List<UserData> users = jdbcTemplate.query(
-                "SELECT id, email, password, enabled, last_login FROM juser WHERE id = ?",
+                "SELECT id, email, password, enabled, last_login FROM users WHERE id = ?",
                 new Object[] {userId.asString()},
                 USER_DATA_ROW_MAPPER);
 
@@ -57,10 +57,10 @@ public class JdbcUserRepository implements UserRepository {
     @Override
     @Transactional
     public User add(User user) {
-        jdbcTemplate.update("insert into juser (id, email, password, enabled, last_login) values (?, ?, ?, true, null)",
+        jdbcTemplate.update("insert into users (id, email, password, enabled, last_login) values (?, ?, ?, true, null)",
                 user.getId().asString(), user.getEmail(), user.getPassword());
 
-        jdbcTemplate.batchUpdate("insert into user_role (user_id, role_id) values (?, ?)", new BatchPreparedStatementSetter() {
+        jdbcTemplate.batchUpdate("insert into authorities (user_id, role_id) values (?, ?)", new BatchPreparedStatementSetter() {
             @Override
             public void setValues(PreparedStatement ps, int i) throws SQLException {
                 Role role = user.getRoles().get(i);
@@ -80,7 +80,7 @@ public class JdbcUserRepository implements UserRepository {
     @Transactional(readOnly = true)
     public Collection<User> list() {
         List<UserData> users = jdbcTemplate.query(
-                "SELECT id, email, password, enabled, last_login FROM juser ORDER BY email",
+                "SELECT id, email, password, enabled, last_login FROM users ORDER BY email",
                 USER_DATA_ROW_MAPPER);
 
         return users.stream().map(userData -> userData.asUser(getRoles(userData.getId()))).collect(toList());
@@ -90,7 +90,7 @@ public class JdbcUserRepository implements UserRepository {
     @Transactional(readOnly = true)
     public Collection<User> getAll(Collection<UserId> userIds) {
         List<UserData> users = namedParameterJdbcTemplate.query(
-                "SELECT id, email, password, enabled, last_login FROM juser WHERE id IN (:ids) ORDER BY email",
+                "SELECT id, email, password, enabled, last_login FROM users WHERE id IN (:ids) ORDER BY email",
                 Collections.singletonMap("ids", userIds.stream().map(UserId::asString).collect(toList())),
                 USER_DATA_ROW_MAPPER);
 
@@ -100,7 +100,7 @@ public class JdbcUserRepository implements UserRepository {
     @Override
     @Transactional
     public void updateAll(List<User> users) {
-        jdbcTemplate.batchUpdate("UPDATE juser SET enabled = ? WHERE id = ?", new BatchPreparedStatementSetter() {
+        jdbcTemplate.batchUpdate("UPDATE users SET enabled = ? WHERE id = ?", new BatchPreparedStatementSetter() {
             @Override
             public void setValues(PreparedStatement ps, int i) throws SQLException {
                 User user = users.get(i);
@@ -119,13 +119,13 @@ public class JdbcUserRepository implements UserRepository {
     @Override
     @Transactional
     public void update(User user) {
-        jdbcTemplate.update("update juser set email = ?, password = ?, enabled = ?, last_login = ? where id  = ?",
+        jdbcTemplate.update("update users set email = ?, password = ?, enabled = ?, last_login = ? where id  = ?",
                 user.getEmail(), user.getPassword(), user.isEnabled(), user.getLastLogin(), user.getId().asString());
     }
 
     private List<Role> getRoles(String userId) {
         List<String> roleCodes = jdbcTemplate
-                .queryForList("select role_id from user_role where user_id = ?", new Object[]{userId}, String.class);
+                .queryForList("select role_id from authorities where user_id = ?", new Object[]{userId}, String.class);
         return roleCodes.stream().map(Integer::valueOf).map(Role::getById).collect(toList());
     }
 
