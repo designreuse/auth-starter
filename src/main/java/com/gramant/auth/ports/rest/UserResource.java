@@ -7,13 +7,11 @@ import com.gramant.auth.domain.PasswordResetTokenId;
 import com.gramant.auth.domain.ex.PasswordResetTokenExpiredException;
 import com.gramant.auth.domain.ex.PasswordResetTokenNotFoundException;
 import com.gramant.auth.domain.ex.UserMissingException;
-import com.gramant.auth.ports.rest.representation.UserRepresentation;
+import com.gramant.auth.ports.rest.handlers.CreateUserHandler;
 import com.gramant.auth.ports.rest.request.*;
 import lombok.AllArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-
-import javax.validation.Valid;
 
 @RestController
 @RequestMapping("/auth/users")
@@ -22,10 +20,11 @@ public class UserResource {
 
     private final ManageUser userManager;
     private final PasswordResetOperations passwordResetOperations;
+    private final CreateUserHandler createUserHandler;
 
     @PostMapping
-    public ResponseEntity<UserRepresentation> createUser(@Valid @RequestBody UserRegistrationRequest userRegistrationRequest) {
-        return ResponseEntity.ok(new UserRepresentation(userManager.add(userRegistrationRequest)));
+    public Object createUser(@RequestBody UserRegistrationRequest userRegistrationRequest) {
+        return createUserHandler.handleCreateRequest(userRegistrationRequest);
     }
 
     @PutMapping("/deactivation")

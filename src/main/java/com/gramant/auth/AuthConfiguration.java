@@ -13,15 +13,19 @@ import com.gramant.auth.ports.jdbc.JdbcUserRepository;
 import com.gramant.auth.ports.rest.ProfileResource;
 import com.gramant.auth.ports.rest.ExistsValidationResource;
 import com.gramant.auth.ports.rest.UserResource;
+import com.gramant.auth.ports.rest.handlers.CreateUserHandler;
+import com.gramant.auth.ports.rest.representation.UserRepresentation;
 import org.springframework.boot.autoconfigure.AutoConfigureAfter;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.autoconfigure.jdbc.DataSourceAutoConfiguration;
 import org.springframework.boot.autoconfigure.security.servlet.SecurityAutoConfiguration;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
+import org.springframework.http.ResponseEntity;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.security.core.userdetails.UserDetailsService;
@@ -42,8 +46,9 @@ public class AuthConfiguration {
     }
 
     @Bean
-    public UserResource userResource(ManageUser manageUser, PasswordResetOperations passwordResetOperations) {
-        return new UserResource(manageUser, passwordResetOperations);
+    public UserResource userResource(ManageUser manageUser, PasswordResetOperations passwordResetOperations,
+                                     CreateUserHandler createUserHandler) {
+        return new UserResource(manageUser, passwordResetOperations, createUserHandler);
     }
 
     @Bean
@@ -103,5 +108,11 @@ public class AuthConfiguration {
     @Bean
     public ManageUser manageUser(UserRepository userRepository, PasswordEncoder passwordEncoder, Notifier notifier) {
         return new DefaultUserManager(userRepository, passwordEncoder, notifier);
+    }
+
+    @Bean
+    @ConditionalOnMissingBean
+    public CreateUserHandler createUserHandler(ManageUser userManager) {
+        return registrationRequest -> ResponseEntity.ok(new UserRepresentation(userManager.add(registrationRequest)));
     }
 }
