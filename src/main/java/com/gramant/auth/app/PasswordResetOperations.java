@@ -56,17 +56,17 @@ public interface PasswordResetOperations {
         @Transactional
         public void updatePassword(@NotNull @Valid PasswordUpdateRequest passwordUpdateRequest) throws PasswordResetTokenExpiredException, PasswordResetTokenNotFoundException, UserMissingException {
             PasswordResetToken token = getValidToken(passwordUpdateRequest.getTokenId());
-            User user = userRepository.get(token.getUser().id()).orElseThrow(() -> new UserMissingException(token.getUser().id()));
+            User user = userRepository.get(token.user().id()).orElseThrow(() -> new UserMissingException(token.user().id()));
             userRepository.update(user.withPassword(encoder.encode(passwordUpdateRequest.getPassword())));
-            passwordTokenRepository.remove(token.getTokenId());
+            passwordTokenRepository.remove(token.tokenId());
             notifier.resetPasswordSuccess(user);
         }
 
         private PasswordResetToken getValidToken(PasswordResetTokenId tokenId) throws PasswordResetTokenNotFoundException, PasswordResetTokenExpiredException {
             PasswordResetToken token = passwordTokenRepository.get(tokenId).orElseThrow(() -> new PasswordResetTokenNotFoundException(tokenId));
-            if (token.isExpired()) {
+            if (token.expired()) {
                 passwordTokenRepository.remove(tokenId);
-                throw new PasswordResetTokenExpiredException(tokenId, token.getExpiryDate());
+                throw new PasswordResetTokenExpiredException(tokenId, token.expiryDate());
             }
             return token;
         }

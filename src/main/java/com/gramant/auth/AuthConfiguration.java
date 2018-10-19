@@ -113,6 +113,6 @@ public class AuthConfiguration {
     @Bean
     @ConditionalOnMissingBean
     public RoleProvider roleProvider() {
-        return new RoleProvider.Default(PrivilegedRole.admin());
+        return new RoleProvider.Default(PrivilegedRole.admin(), PrivilegedRole.user());
     }
 }

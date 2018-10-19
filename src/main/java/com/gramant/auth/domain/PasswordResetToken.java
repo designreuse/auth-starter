@@ -2,11 +2,13 @@ package com.gramant.auth.domain;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;
+import lombok.experimental.Accessors;
 
 import java.time.LocalDateTime;
 import java.util.UUID;
 
 @Getter
+@Accessors(fluent = true)
 @AllArgsConstructor
 public class PasswordResetToken {
 
@@ -21,7 +23,7 @@ public class PasswordResetToken {
         this.expiryDate = LocalDateTime.now().plusSeconds(EXPIRY_SECONDS);
     }
 
-    public boolean isExpired() {
+    public boolean expired() {
         return expiryDate.compareTo(LocalDateTime.now()) < 0;
     }
 }

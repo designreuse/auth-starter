@@ -1,11 +1,15 @@
 package com.gramant.auth.domain;
 
+import lombok.EqualsAndHashCode;
 import lombok.ToString;
 
-@ToString(of = {"value"})
-public class PasswordResetTokenId {
+import java.io.Serializable;
 
-    private String value;
+@EqualsAndHashCode(of = "value")
+@ToString(of = {"value"})
+public class PasswordResetTokenId implements Serializable {
+
+    private final String value;
 
     private PasswordResetTokenId(String value) {
         this.value = value;
