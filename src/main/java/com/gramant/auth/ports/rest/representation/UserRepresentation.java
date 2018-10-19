@@ -16,10 +16,10 @@ public class UserRepresentation {
     private List<PrivilegedRole> roles;
 
     public UserRepresentation(User user) {
-        this.id = user.getId().asString();
-        this.email = user.getEmail();
-        this.enabled = user.isEnabled();
-        this.lastLogin = user.getLastLogin();
-        this.roles = user.getRoles();
+        this.id = user.id().asString();
+        this.email = user.email();
+        this.enabled = user.enabled();
+        this.lastLogin = user.lastLogin();
+        this.roles = user.roles();
     }
 }

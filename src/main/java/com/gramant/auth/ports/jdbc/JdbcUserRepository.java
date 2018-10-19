@@ -58,19 +58,19 @@ public class JdbcUserRepository implements UserRepository {
     @Transactional
     public User add(User user) {
         jdbcTemplate.update("insert into users (id, email, password, enabled, last_login) values (?, ?, ?, true, null)",
-                user.getId().asString(), user.getEmail(), user.getPassword());
+                user.id().asString(), user.email(), user.password());
 
         jdbcTemplate.batchUpdate("insert into authorities (user_id, role_id) values (?, ?)", new BatchPreparedStatementSetter() {
             @Override
             public void setValues(PreparedStatement ps, int i) throws SQLException {
-                PrivilegedRole role = user.getRoles().get(i);
-                ps.setString(1, user.getId().asString());
+                PrivilegedRole role = user.roles().get(i);
+                ps.setString(1, user.id().asString());
                 ps.setString(2, role.id().asString());
             }
 
             @Override
             public int getBatchSize() {
-                return user.getRoles().size();
+                return user.roles().size();
             }
         });
         return user;
@@ -104,8 +104,8 @@ public class JdbcUserRepository implements UserRepository {
             @Override
             public void setValues(PreparedStatement ps, int i) throws SQLException {
                 User user = users.get(i);
-                ps.setBoolean(1, user.isEnabled());
-                ps.setString(2, user.getId().asString());
+                ps.setBoolean(1, user.enabled());
+                ps.setString(2, user.id().asString());
             }
 
             @Override
@@ -120,7 +120,7 @@ public class JdbcUserRepository implements UserRepository {
     @Transactional
     public void update(User user) {
         jdbcTemplate.update("update users set email = ?, password = ?, enabled = ?, last_login = ? where id  = ?",
-                user.getEmail(), user.getPassword(), user.isEnabled(), user.getLastLogin(), user.getId().asString());
+                user.email(), user.password(), user.enabled(), user.lastLogin(), user.id().asString());
     }
 
     private List<PrivilegedRole> getRoles(String userId) {

@@ -55,7 +55,7 @@ public class UserResource {
     public ResponseEntity confirmResetPassword(@PathVariable PasswordResetTokenId tokenId)
             throws PasswordResetTokenNotFoundException, PasswordResetTokenExpiredException {
         PasswordResetToken token = passwordResetOperations.confirmPasswordChange(tokenId);
-        return ResponseEntity.ok().body(token.getUser().getId().asString());
+        return ResponseEntity.ok().body(token.getUser().id().asString());
     }
 
     @PutMapping("/password")

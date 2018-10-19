@@ -1,18 +1,22 @@
 package com.gramant.auth.domain;
 
-import lombok.*;
+import lombok.Builder;
+import lombok.EqualsAndHashCode;
+import lombok.Getter;
+import lombok.ToString;
 import lombok.experimental.Accessors;
 
 import java.time.LocalDateTime;
 import java.util.Collections;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 
 /**
  * User
  */
 @Getter
-//@Accessors(fluent = true)
+@Accessors(fluent = true)
 @EqualsAndHashCode(of = {"id"})
 @ToString(exclude = "password")
 public class User {
@@ -25,6 +29,7 @@ public class User {
 
     @Builder
     public User(UserId id, String email, String password, boolean enabled, List<PrivilegedRole> roles, LocalDateTime lastLogin) {
+        Objects.requireNonNull(id);
         this.id = id;
         this.email = email;
         this.password = password;

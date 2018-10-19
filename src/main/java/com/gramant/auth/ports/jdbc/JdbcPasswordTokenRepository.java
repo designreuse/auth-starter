@@ -27,7 +27,7 @@ public class JdbcPasswordTokenRepository implements PasswordTokenRepository {
         jdbcTemplate.update("insert into password_reset_token (token, user_id, expiry_date) values (?, ?, ?);",
                 ps -> {
             ps.setString(1, passwordResetToken.getTokenId().asString());
-            ps.setString(2, passwordResetToken.getUser().getId().asString());
+            ps.setString(2, passwordResetToken.getUser().id().asString());
             ps.setTimestamp(3, Timestamp.valueOf(passwordResetToken.getExpiryDate()));
                 });
     }

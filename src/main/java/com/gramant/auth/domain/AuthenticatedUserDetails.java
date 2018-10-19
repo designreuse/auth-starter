@@ -19,19 +19,19 @@ public class AuthenticatedUserDetails implements UserDetails {
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
-        return user.getRoles().stream()
+        return user.roles().stream()
                 .flatMap(r -> r.privileges().stream().map(PrivilegeId::asString)).map(SimpleGrantedAuthority::new)
                 .collect(toList());
     }
 
     @Override
     public String getPassword() {
-        return user.getPassword();
+        return user.password();
     }
 
     @Override
     public String getUsername() {
-        return user.getId().asString();
+        return user.id().asString();
     }
 
     @Override
@@ -51,7 +51,7 @@ public class AuthenticatedUserDetails implements UserDetails {
 
     @Override
     public boolean isEnabled() {
-        return user.isEnabled();
+        return user.enabled();
     }
 
     public User getUser() {
