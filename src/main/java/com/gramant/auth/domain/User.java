@@ -1,31 +1,30 @@
 package com.gramant.auth.domain;
 
 import lombok.*;
+import lombok.experimental.Accessors;
 
 import java.time.LocalDateTime;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 
-import static java.util.Collections.singletonList;
-
 /**
  * User
  */
-@NoArgsConstructor(access = AccessLevel.PRIVATE)
-@EqualsAndHashCode(of = {"email"})
-@ToString(exclude = "password")
 @Getter
+//@Accessors(fluent = true)
+@EqualsAndHashCode(of = {"id"})
+@ToString(exclude = "password")
 public class User {
     private UserId id;
     private String email;
     private String password;
     private boolean enabled;
     private LocalDateTime lastLogin;
-    private List<Role> roles;
+    private final List<PrivilegedRole> roles;
 
     @Builder
-    public User(UserId id, String email, String password, boolean enabled, List<Role> roles, LocalDateTime lastLogin) {
+    public User(UserId id, String email, String password, boolean enabled, List<PrivilegedRole> roles, LocalDateTime lastLogin) {
         this.id = id;
         this.email = email;
         this.password = password;
@@ -34,24 +33,8 @@ public class User {
         this.lastLogin = lastLogin;
     }
 
-    public User(String email, List<Role> roles) {
-        this(null, email, null, true, roles, null);
-    }
-
-    public User(String email, String password, String id) {
-        this(UserId.of(id), email, password, true, singletonList(Role.USER), null);
-    }
-
-    public User updatedWith(String email, boolean enabled, List<Role> roles) {
+    public User updatedWith(String email, boolean enabled, List<PrivilegedRole> roles) {
         return new User(this.id, email, this.password, enabled, roles, this.lastLogin);
-    }
-
-    public boolean hasId() {
-        return id != null;
-    }
-
-    public boolean hasRoles() {
-        return roles != null && roles.size() > 0;
     }
 
     public User withId(UserId userId) {
@@ -62,15 +45,15 @@ public class User {
         return new User(this.id, this.email, password, this.enabled, this.roles, this.lastLogin);
     }
 
-    public User withRoles(List<Role> roles) {
+    public User withRoles(List<PrivilegedRole> roles) {
         return new User(this.id, this.email, this.password, this.enabled, roles, this.lastLogin);
     }
 
-    public User deactivated() {
+    public User asDeactivated() {
         return new User(this.id, this.email, this.password, false, this.roles, this.lastLogin);
     }
 
-    public User activated() {
+    public User asActivated() {
         return new User(this.id, this.email, this.password, true, this.roles, this.lastLogin);
     }
 }

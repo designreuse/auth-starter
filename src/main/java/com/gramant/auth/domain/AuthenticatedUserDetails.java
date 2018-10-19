@@ -20,7 +20,7 @@ public class AuthenticatedUserDetails implements UserDetails {
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
         return user.getRoles().stream()
-                .flatMap(r -> r.getPrivileges().stream().map(Enum::name)).map(SimpleGrantedAuthority::new)
+                .flatMap(r -> r.privileges().stream().map(PrivilegeId::asString)).map(SimpleGrantedAuthority::new)
                 .collect(toList());
     }
 
@@ -31,7 +31,6 @@ public class AuthenticatedUserDetails implements UserDetails {
 
     @Override
     public String getUsername() {
-//        return user.getEmail();
         return user.getId().asString();
     }
 

@@ -30,11 +30,12 @@ public class DefaultUserManager implements ManageUser {
     private UserRepository userRepository;
     private PasswordEncoder encoder;
     private Notifier notifier;
+    private RoleProvider roleProvider;
 
     @Override
     public User add(@NotNull @Valid UserRegistrationRequest userRegistrationRequest) {
         User createdUser = userRepository
-                .add(userRegistrationRequest.asUserWithMappedPassword(password -> encoder.encode(password)));
+                .add(userRegistrationRequest.asUserWithMappedPassword(password -> encoder.encode(password), roleProvider.defaultRole()));
         // todo: [#events] UserCreatedEvent
         notifier.registrationSuccess(createdUser);
         return createdUser;
@@ -71,9 +72,9 @@ public class DefaultUserManager implements ManageUser {
         Collection<User> users = userRepository.getAll(request.userIds());
 
         if (activate) {
-            userRepository.updateAll(users.stream().map(User::activated).collect(toList()));
+            userRepository.updateAll(users.stream().map(User::asActivated).collect(toList()));
         } else {
-            userRepository.updateAll(users.stream().map(User::deactivated).collect(toList()));
+            userRepository.updateAll(users.stream().map(User::asDeactivated).collect(toList()));
         }
     }
 

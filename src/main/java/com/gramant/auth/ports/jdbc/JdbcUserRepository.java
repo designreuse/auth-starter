@@ -1,9 +1,7 @@
 package com.gramant.auth.ports.jdbc;
 
-import com.gramant.auth.domain.Role;
-import com.gramant.auth.domain.User;
-import com.gramant.auth.domain.UserId;
-import com.gramant.auth.domain.UserRepository;
+import com.gramant.auth.app.RoleProvider;
+import com.gramant.auth.domain.*;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.Setter;
@@ -31,6 +29,7 @@ public class JdbcUserRepository implements UserRepository {
 
     private JdbcTemplate jdbcTemplate;
     private NamedParameterJdbcTemplate namedParameterJdbcTemplate;
+    private RoleProvider roleProvider;
 
     @Override
     @Transactional(readOnly = true)
@@ -45,6 +44,7 @@ public class JdbcUserRepository implements UserRepository {
 
     @Override
     @Transactional(readOnly = true)
+    // todo: select in one query (join-map)
     public Optional<User> get(UserId userId) {
         List<UserData> users = jdbcTemplate.query(
                 "SELECT id, email, password, enabled, last_login FROM users WHERE id = ?",
@@ -63,9 +63,9 @@ public class JdbcUserRepository implements UserRepository {
         jdbcTemplate.batchUpdate("insert into authorities (user_id, role_id) values (?, ?)", new BatchPreparedStatementSetter() {
             @Override
             public void setValues(PreparedStatement ps, int i) throws SQLException {
-                Role role = user.getRoles().get(i);
+                PrivilegedRole role = user.getRoles().get(i);
                 ps.setString(1, user.getId().asString());
-                ps.setInt(2, role.getId());
+                ps.setString(2, role.id().asString());
             }
 
             @Override
@@ -123,10 +123,9 @@ public class JdbcUserRepository implements UserRepository {
                 user.getEmail(), user.getPassword(), user.isEnabled(), user.getLastLogin(), user.getId().asString());
     }
 
-    private List<Role> getRoles(String userId) {
-        List<String> roleCodes = jdbcTemplate
-                .queryForList("select role_id from authorities where user_id = ?", new Object[]{userId}, String.class);
-        return roleCodes.stream().map(Integer::valueOf).map(Role::getById).collect(toList());
+    private List<PrivilegedRole> getRoles(String userId) {
+        List<RoleId> roleIds = jdbcTemplate.queryForList("select role_id from authorities where user_id = ?", new Object[]{userId}, RoleId.class);
+        return roleIds.stream().map(roleProvider::role).map(o -> o.orElse(PrivilegedRole.unknown())).collect(toList());
     }
 
     @Getter
@@ -137,7 +136,7 @@ public class JdbcUserRepository implements UserRepository {
         private String password;
         private boolean enabled;
 
-        User asUser(List<Role> roles) {
+        User asUser(List<PrivilegedRole> roles) {
             return new User(UserId.of(id), email, password, enabled, roles, null);
         }
     }

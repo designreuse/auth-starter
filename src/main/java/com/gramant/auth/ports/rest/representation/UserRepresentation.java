@@ -1,6 +1,6 @@
 package com.gramant.auth.ports.rest.representation;
 
-import com.gramant.auth.domain.Role;
+import com.gramant.auth.domain.PrivilegedRole;
 import com.gramant.auth.domain.User;
 import lombok.Getter;
 
@@ -13,7 +13,7 @@ public class UserRepresentation {
     private String email;
     private boolean enabled;
     private LocalDateTime lastLogin;
-    private List<Role> roles;
+    private List<PrivilegedRole> roles;
 
     public UserRepresentation(User user) {
         this.id = user.getId().asString();

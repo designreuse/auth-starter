@@ -2,7 +2,7 @@ package com.gramant.auth.ports.rest.request;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.gramant.auth.domain.Role;
+import com.gramant.auth.domain.PrivilegedRole;
 import com.gramant.auth.domain.User;
 import com.gramant.auth.domain.UserId;
 import lombok.Getter;
@@ -35,8 +35,8 @@ public class UserRegistrationRequest {
         this.id = id;
     }
 
-    public User asUserWithMappedPassword(Function<String, String> passwordMapper) {
+    public User asUserWithMappedPassword(Function<String, String> passwordMapper, PrivilegedRole defaultRole) {
         return User.builder().email(email).password(passwordMapper.apply(password)).id(UserId.of(id))
-                .roles(singletonList(Role.USER)).build();
+                .roles(singletonList(defaultRole)).build();
     }
 }

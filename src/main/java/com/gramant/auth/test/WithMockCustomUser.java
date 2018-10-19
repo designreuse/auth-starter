@@ -1,9 +1,6 @@
 package com.gramant.auth.test;
 
-import com.gramant.auth.domain.AuthenticatedUserDetails;
-import com.gramant.auth.domain.Role;
-import com.gramant.auth.domain.User;
-import com.gramant.auth.domain.UserId;
+import com.gramant.auth.domain.*;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContext;
@@ -27,7 +24,7 @@ public @interface WithMockCustomUser {
         @Override
         public SecurityContext createSecurityContext(WithMockCustomUser customUser) {
             SecurityContext context = SecurityContextHolder.createEmptyContext();
-            User user = new User(UserId.of(customUser.id()), customUser.email(), customUser.password(), true, Collections.singletonList(Role.USER), null);
+            User user = new User(UserId.of(customUser.id()), customUser.email(), customUser.password(), true, Collections.singletonList(PrivilegedRole.user()), null);
             AuthenticatedUserDetails principal = new AuthenticatedUserDetails(user);
             Authentication auth = new UsernamePasswordAuthenticationToken(principal, null, Collections.emptyList());
             context.setAuthentication(auth);

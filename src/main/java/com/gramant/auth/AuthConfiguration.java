@@ -1,13 +1,7 @@
 package com.gramant.auth;
 
-import com.gramant.auth.app.DefaultUserManager;
-import com.gramant.auth.app.ManageUser;
-import com.gramant.auth.app.Notifier;
-import com.gramant.auth.app.PasswordResetOperations;
-import com.gramant.auth.domain.PasswordResetToken;
-import com.gramant.auth.domain.PasswordTokenRepository;
-import com.gramant.auth.domain.User;
-import com.gramant.auth.domain.UserRepository;
+import com.gramant.auth.app.*;
+import com.gramant.auth.domain.*;
 import com.gramant.auth.ports.jdbc.JdbcPasswordTokenRepository;
 import com.gramant.auth.ports.jdbc.JdbcUserRepository;
 import com.gramant.auth.ports.rest.ProfileResource;
@@ -76,8 +70,8 @@ public class AuthConfiguration {
     }
 
     @Bean
-    public UserRepository userRepository(JdbcTemplate jdbcTemplate, NamedParameterJdbcTemplate namedParameterJdbcTemplate) {
-        return new JdbcUserRepository(jdbcTemplate, namedParameterJdbcTemplate);
+    public UserRepository userRepository(JdbcTemplate jdbcTemplate, NamedParameterJdbcTemplate namedParameterJdbcTemplate, RoleProvider roleProvider) {
+        return new JdbcUserRepository(jdbcTemplate, namedParameterJdbcTemplate, roleProvider);
     }
 
     @Bean
@@ -106,13 +100,19 @@ public class AuthConfiguration {
     }
 
     @Bean
-    public ManageUser manageUser(UserRepository userRepository, PasswordEncoder passwordEncoder, Notifier notifier) {
-        return new DefaultUserManager(userRepository, passwordEncoder, notifier);
+    public ManageUser manageUser(UserRepository userRepository, PasswordEncoder passwordEncoder, Notifier notifier, RoleProvider roleProvider) {
+        return new DefaultUserManager(userRepository, passwordEncoder, notifier, roleProvider);
     }
 
     @Bean
     @ConditionalOnMissingBean
     public CreateUserHandler createUserHandler(ManageUser userManager) {
         return registrationRequest -> ResponseEntity.ok(new UserRepresentation(userManager.add(registrationRequest)));
+    }
+
+    @Bean
+    @ConditionalOnMissingBean
+    public RoleProvider roleProvider() {
+        return new RoleProvider.Default(PrivilegedRole.admin());
     }
 }
