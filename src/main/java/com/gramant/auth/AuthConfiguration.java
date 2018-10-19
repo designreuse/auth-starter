@@ -10,7 +10,7 @@ import com.gramant.auth.domain.User;
 import com.gramant.auth.domain.UserRepository;
 import com.gramant.auth.ports.jdbc.JdbcPasswordTokenRepository;
 import com.gramant.auth.ports.jdbc.JdbcUserRepository;
-import com.gramant.auth.ports.rest.AuthResource;
+import com.gramant.auth.ports.rest.ProfileResource;
 import com.gramant.auth.ports.rest.ExistsValidationResource;
 import com.gramant.auth.ports.rest.UserResource;
 import org.springframework.boot.autoconfigure.AutoConfigureAfter;
@@ -47,8 +47,8 @@ public class AuthConfiguration {
     }
 
     @Bean
-    public AuthResource authResource(ManageUser manageUser) {
-        return new AuthResource(manageUser);
+    public ProfileResource authResource(ManageUser manageUser) {
+        return new ProfileResource();
     }
 
     @Bean

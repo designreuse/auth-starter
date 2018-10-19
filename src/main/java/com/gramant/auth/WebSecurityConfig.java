@@ -45,18 +45,17 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
     private static int rememberMeTokenValiditySeconds = 24 * 60 * 60;
 
     @Override
-    // todo: "/api/auth/**" -> "/auth/**"
     protected void configure(HttpSecurity http) throws Exception {
         http.csrf().disable();
         http.cors().configurationSource(corsConfigurationSource());
         http.authorizeRequests().antMatchers(
-                "/api/auth/login",
-                "/api/auth/user",
-                "/api/users"
+                "/auth/login",
+                "/auth/users",
+                "/auth/check"
         ).permitAll();
         http.authorizeRequests().antMatchers("/api/**").authenticated();
         http.logout()
-                .permitAll().logoutRequestMatcher(new AntPathRequestMatcher("/api/auth/logout"))
+                .permitAll().logoutRequestMatcher(new AntPathRequestMatcher("/auth/logout"))
                 .invalidateHttpSession(true)
                 .deleteCookies("JSESSIONID")
                 .logoutSuccessHandler(new HttpStatusReturningLogoutSuccessHandler(HttpStatus.OK));
@@ -65,7 +64,7 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
                 .tokenRepository(persistentTokenRepository())
                 .tokenValiditySeconds(rememberMeTokenValiditySeconds);
         http.formLogin()
-                .loginProcessingUrl("/api/auth/login")
+                .loginProcessingUrl("/auth/login")
                 .successHandler(successLoginHandler())
                 .failureHandler(failureLoginHandler());
         http.sessionManagement().invalidSessionStrategy((request, response) -> {
@@ -83,13 +82,13 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
     @Override
     public void configure(WebSecurity web) {
         web
-                .ignoring().antMatchers("/api/auth/check/**")
+                .ignoring().antMatchers("/auth/check/**")
                 .and()
-                .ignoring().antMatchers(HttpMethod.POST, "/api/auth/user", "/api/users/password-reset-token")
+                .ignoring().antMatchers(HttpMethod.POST, "/auth/users", "/auth/users/password-reset-token")
                 .and()
-                .ignoring().antMatchers(HttpMethod.GET, "/api/users/password-reset-token/*", "/api/users/disclaimer")
+                .ignoring().antMatchers(HttpMethod.GET, "/auth/users/password-reset-token/*")
                 .and()
-                .ignoring().antMatchers(HttpMethod.PUT, "/api/users/password");
+                .ignoring().antMatchers(HttpMethod.PUT, "/auth/users/password");
     }
 
     private AuthenticationFailureHandler failureLoginHandler() {
