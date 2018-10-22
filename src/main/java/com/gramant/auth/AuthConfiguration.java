@@ -46,13 +46,13 @@ public class AuthConfiguration {
     }
 
     @Bean
-    public ProfileResource authResource(ManageUser manageUser) {
+    public ProfileResource authResource() {
         return new ProfileResource();
     }
 
     @Bean
-    public ExistsValidationResource existsValidationResource(ManageUser manageUser) {
-        return new ExistsValidationResource(manageUser);
+    public ExistsValidationResource existsValidationResource(QueryUser queryUser) {
+        return new ExistsValidationResource(queryUser);
     }
 
     @Bean
@@ -102,6 +102,11 @@ public class AuthConfiguration {
     @Bean
     public ManageUser manageUser(UserRepository userRepository, PasswordEncoder passwordEncoder, Notifier notifier, RoleProvider roleProvider) {
         return new DefaultUserManager(userRepository, passwordEncoder, notifier, roleProvider);
+    }
+
+    @Bean
+    public QueryUser queryUser(UserRepository userRepository) {
+        return new QueryUser.Default(userRepository);
     }
 
     @Bean

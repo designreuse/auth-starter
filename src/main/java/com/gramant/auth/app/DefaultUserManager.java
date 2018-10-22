@@ -1,9 +1,7 @@
 package com.gramant.auth.app;
 
 import com.gramant.auth.domain.User;
-import com.gramant.auth.domain.UserId;
 import com.gramant.auth.domain.UserRepository;
-import com.gramant.auth.domain.ex.UserMissingException;
 import com.gramant.auth.ports.rest.request.CommunicationRequest;
 import com.gramant.auth.ports.rest.request.UpdateActivityRequest;
 import com.gramant.auth.ports.rest.request.UserRegistrationRequest;
@@ -18,7 +16,6 @@ import javax.validation.Valid;
 import javax.validation.constraints.NotNull;
 
 import java.util.Collection;
-import java.util.List;
 
 import static java.util.stream.Collectors.toList;
 
@@ -43,26 +40,6 @@ public class DefaultUserManager implements ManageUser {
 
     @Override
     public User update(@NotNull @Valid UserUpdateRequest userUpdateRequest) {
-        return null;
-    }
-
-    @Override
-    public User findEnabledByEmail(@NotNull String email) throws UserMissingException {
-        return userRepository.findByEmail(email).orElseThrow(() -> new UserMissingException(email));
-    }
-
-    @Override
-    public User findEnabledById(@NotNull UserId userId) throws UserMissingException {
-        return userRepository.get(userId).orElseThrow(() -> new UserMissingException(userId));
-    }
-
-    @Override
-    public List<User> list() {
-        return null;
-    }
-
-    @Override
-    public User get(@NotNull UserId userId) {
         return null;
     }
 

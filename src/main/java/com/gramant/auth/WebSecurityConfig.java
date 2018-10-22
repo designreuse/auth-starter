@@ -1,6 +1,7 @@
 package com.gramant.auth;
 
 import com.gramant.auth.app.ManageUser;
+import com.gramant.auth.app.QueryUser;
 import com.gramant.auth.domain.AuthenticatedUserDetails;
 import com.gramant.auth.domain.User;
 import com.gramant.auth.domain.ex.UserMissingException;
@@ -150,12 +151,12 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
     }
 
     @Bean
-    public UserDetailsService userDetailsService(ManageUser userManager) {
+    public UserDetailsService userDetailsService(QueryUser queryUser) {
         return (username) -> {
             User user;
 
             try {
-                user = userManager.findEnabledByEmail(username);
+                user = queryUser.findEnabledByEmail(username);
             } catch (UserMissingException e) {
                 throw new UsernameNotFoundException("User " + username + " is not found");
             }
