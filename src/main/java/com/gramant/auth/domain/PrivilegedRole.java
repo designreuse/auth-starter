@@ -6,10 +6,9 @@ import lombok.Getter;
 import lombok.ToString;
 import lombok.experimental.Accessors;
 
-import java.util.Collection;
+import java.util.List;
 
-import static java.util.Collections.emptyList;
-import static java.util.Collections.singleton;
+import static java.util.Collections.*;
 
 @Getter
 @Accessors(fluent = true)
@@ -19,10 +18,10 @@ import static java.util.Collections.singleton;
 public final class PrivilegedRole {
 
     private final RoleId id;
-    private final Collection<PrivilegeId> privileges;
+    private final List<PrivilegeId> privileges;
 
     public static PrivilegedRole admin() {
-        return new PrivilegedRole(RoleId.ADMIN, singleton(PrivilegeId.ALL));
+        return new PrivilegedRole(RoleId.ADMIN, singletonList(PrivilegeId.ALL));
     }
 
     public static PrivilegedRole unknown() {
