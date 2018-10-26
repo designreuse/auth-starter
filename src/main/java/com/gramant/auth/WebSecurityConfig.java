@@ -1,12 +1,12 @@
 package com.gramant.auth;
 
-import com.gramant.auth.app.DefaultUserDetailsService;
-import com.gramant.auth.app.DefaultUserManager;
 import com.gramant.auth.app.ManageUser;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Import;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -43,14 +43,20 @@ import static java.util.Collections.singletonList;
  * Spring Security Config
  */
 @Configuration
-@RequiredArgsConstructor
+@Import(UserDetailsPreloader.class)
 public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
 
     private final DataSource dataSource;
     private final AuthProperties authProperties;
-    private final DefaultUserDetailsService defaultUserDetailsService;
+    @Autowired private UserDetailsService userDetailsService;
 
     private static String[] allowedOrigins = new String[] {"http://localhost:80"};
+
+    @Autowired
+    public WebSecurityConfig(DataSource dataSource, AuthProperties authProperties) {
+        this.dataSource = dataSource;
+        this.authProperties = authProperties;
+    }
 
     @Override
     protected void configure(HttpSecurity http) throws Exception {
@@ -81,7 +87,7 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
             }
         });
         http.rememberMe()
-                .userDetailsService(defaultUserDetailsService)
+                .userDetailsService(userDetailsService)
                 .tokenValiditySeconds(authProperties.getRememberMeTokenValiditySeconds());
 
         if (authProperties.getEnablePersistentLogins()) {
@@ -90,7 +96,7 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
                     .rememberMeServices(persistentTokenBasedRememberMeServices());
         } else {
             http.rememberMe()
-                    .userDetailsService(defaultUserDetailsService)
+                    .userDetailsService(userDetailsService)
                     .tokenRepository(inMempersistentTokenRepository());
 
         }
@@ -150,7 +156,7 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
     @Bean
     public SwitchUserFilter switchUserFilter() {
         SwitchUserFilter filter = new SwitchUserFilter();
-        filter.setUserDetailsService(defaultUserDetailsService);
+        filter.setUserDetailsService(userDetailsService);
         filter.setTargetUrl("/");
         return filter;
     }
@@ -173,11 +179,6 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
 
         return jdbcTokenRepository;
     }
-    
-    @Bean
-    public DefaultUserDetailsService defaultUserDetailsService(ManageUser manageUser) {
-        return new DefaultUserDetailsService(manageUser);
-    }
 
     @Bean
     @ConditionalOnProperty(name ="auth-starter.enable-persistent-logins", havingValue = "false")
@@ -188,7 +189,7 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
     @Bean
     @ConditionalOnProperty(name ="auth-starter.enable-persistent-logins", havingValue = "true")
     public RememberMeServices persistentTokenBasedRememberMeServices() {
-        PersistentTokenBasedRememberMeServices services = new PersistentTokenBasedRememberMeServices(authProperties.getRemeberMeKey(), defaultUserDetailsService, persistentTokenRepository());
+        PersistentTokenBasedRememberMeServices services = new PersistentTokenBasedRememberMeServices(authProperties.getRemeberMeKey(), userDetailsService, persistentTokenRepository());
 
         services.setAlwaysRemember(true);
         services.setTokenValiditySeconds(authProperties.getRememberMeTokenValiditySeconds());
