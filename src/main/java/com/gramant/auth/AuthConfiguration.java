@@ -11,7 +11,6 @@ import com.gramant.auth.ports.rest.handlers.CreateUserHandler;
 import com.gramant.auth.ports.rest.representation.UserRepresentation;
 import org.springframework.boot.autoconfigure.AutoConfigureAfter;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.autoconfigure.jdbc.DataSourceAutoConfiguration;
 import org.springframework.boot.autoconfigure.security.servlet.SecurityAutoConfiguration;
@@ -22,13 +21,13 @@ import org.springframework.context.annotation.Import;
 import org.springframework.http.ResponseEntity;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
 import javax.sql.DataSource;
 
 @Configuration
 @ConditionalOnBean(DataSource.class)
-@ConditionalOnClass(DefaultUserDetailsService.class)
 @AutoConfigureAfter({DataSourceAutoConfiguration.class, SecurityAutoConfiguration.class})
 @EnableConfigurationProperties(AuthProperties.class)
 @Import(WebSecurityConfig.class)
@@ -99,8 +98,13 @@ public class AuthConfiguration {
     }
 
     @Bean
-    public ManageUser manageUser(UserRepository userRepository, PasswordEncoder passwordEncoder, Notifier notifier, RoleProvider roleProvider) {
-        return new DefaultUserManager(userRepository, passwordEncoder, notifier, roleProvider);
+    public ManageUser manageUser(UserRepository userRepository, Notifier notifier, RoleProvider roleProvider) {
+        return new DefaultUserManager(userRepository, passwordEncoder(), notifier, roleProvider);
+    }
+
+    @Bean
+    public PasswordEncoder passwordEncoder() {
+        return new BCryptPasswordEncoder();
     }
 
     @Bean
