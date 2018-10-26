@@ -32,7 +32,7 @@ import javax.sql.DataSource;
 @ConditionalOnClass(UserDetailsService.class)
 @AutoConfigureAfter({DataSourceAutoConfiguration.class, SecurityAutoConfiguration.class})
 @EnableConfigurationProperties(AuthProperties.class)
-@Import(WebSecurityConfig.class)
+//@Import(WebSecurityConfig.class)
 public class AuthConfiguration {
     @Bean
     public AuthListener authListener() {
