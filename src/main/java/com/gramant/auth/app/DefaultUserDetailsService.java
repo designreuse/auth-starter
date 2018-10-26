@@ -1,4 +1,4 @@
-package com.gramant.auth;
+package com.gramant.auth.app;
 
 import com.gramant.auth.app.ManageUser;
 import com.gramant.auth.domain.AuthenticatedUserDetails;
