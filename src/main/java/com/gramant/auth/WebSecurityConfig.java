@@ -50,11 +50,12 @@ import static java.util.Collections.singletonList;
  */
 @Configuration
 @RequiredArgsConstructor
+@ConditionalOnBean(ManageUser.class)
 public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
 
     private final DataSource dataSource;
     private final AuthProperties authProperties;
-    private final UserDetailsService userDetailsService;
+    private final ManageUser manageUser;
 
     private static String[] allowedOrigins = new String[] {"http://localhost:80"};
 
@@ -87,7 +88,7 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
             }
         });
         http.rememberMe()
-                .userDetailsService(userDetailsService)
+                .userDetailsService(userDetailsService(manageUser))
                 .tokenValiditySeconds(authProperties.getRememberMeTokenValiditySeconds());
 
         if (authProperties.getEnablePersistentLogins()) {
@@ -96,7 +97,7 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
                     .rememberMeServices(persistentTokenBasedRememberMeServices());
         } else {
             http.rememberMe()
-                    .userDetailsService(userDetailsService)
+                    .userDetailsService(userDetailsService(manageUser))
                     .tokenRepository(inMempersistentTokenRepository());
 
         }
@@ -156,7 +157,7 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
     @Bean
     public SwitchUserFilter switchUserFilter() {
         SwitchUserFilter filter = new SwitchUserFilter();
-        filter.setUserDetailsService(userDetailsService);
+        filter.setUserDetailsService(userDetailsService(manageUser));
         filter.setTargetUrl("/");
         return filter;
     }
@@ -204,7 +205,7 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
     @Bean
     @ConditionalOnProperty(name ="auth-starter.enable-persistent-logins", havingValue = "true")
     public RememberMeServices persistentTokenBasedRememberMeServices() {
-        PersistentTokenBasedRememberMeServices services = new PersistentTokenBasedRememberMeServices(authProperties.getRemeberMeKey(), userDetailsService, persistentTokenRepository());
+        PersistentTokenBasedRememberMeServices services = new PersistentTokenBasedRememberMeServices(authProperties.getRemeberMeKey(), userDetailsService(manageUser), persistentTokenRepository());
 
         services.setAlwaysRemember(true);
         services.setTokenValiditySeconds(authProperties.getRememberMeTokenValiditySeconds());
