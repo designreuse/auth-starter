@@ -4,6 +4,10 @@ import com.gramant.auth.app.ManageUser;
 import com.gramant.auth.domain.AuthenticatedUserDetails;
 import com.gramant.auth.domain.User;
 import com.gramant.auth.domain.ex.UserMissingException;
+import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
@@ -21,8 +25,11 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.access.intercept.FilterSecurityInterceptor;
 import org.springframework.security.web.authentication.AuthenticationFailureHandler;
 import org.springframework.security.web.authentication.AuthenticationSuccessHandler;
+import org.springframework.security.web.authentication.RememberMeServices;
 import org.springframework.security.web.authentication.logout.HttpStatusReturningLogoutSuccessHandler;
 import org.springframework.security.web.authentication.rememberme.InMemoryTokenRepositoryImpl;
+import org.springframework.security.web.authentication.rememberme.JdbcTokenRepositoryImpl;
+import org.springframework.security.web.authentication.rememberme.PersistentTokenBasedRememberMeServices;
 import org.springframework.security.web.authentication.rememberme.PersistentTokenRepository;
 import org.springframework.security.web.authentication.switchuser.SwitchUserFilter;
 import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
@@ -31,6 +38,7 @@ import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
 import javax.servlet.http.Cookie;
+import javax.sql.DataSource;
 import java.util.Arrays;
 
 import static java.util.Collections.singletonList;
@@ -39,10 +47,19 @@ import static java.util.Collections.singletonList;
  * Spring Security Config
  */
 @Configuration
+@ConditionalOnBean(DataSource.class)
+@RequiredArgsConstructor
 public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
 
+    private final DataSource dataSource;
+
     private static String[] allowedOrigins = new String[] {"http://localhost:80"};
-    private static int rememberMeTokenValiditySeconds = 24 * 60 * 60;
+    @Value("${auth-starter.remember-me-key}")
+    private String rememberMeKey;
+    @Value("${auth-starter.remember-me-token-validity-seconds}")
+    private Integer rememberMeTokenValiditySeconds;
+    @Value("${auth-starter.enable-persistent-logins}")
+    private Boolean enablePersistentLogins;
 
     @Override
     protected void configure(HttpSecurity http) throws Exception {
@@ -59,10 +76,6 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
                 .invalidateHttpSession(true)
                 .deleteCookies("JSESSIONID")
                 .logoutSuccessHandler(new HttpStatusReturningLogoutSuccessHandler(HttpStatus.OK));
-        http.rememberMe()
-                .userDetailsService(userDetailsService())
-                .tokenRepository(persistentTokenRepository())
-                .tokenValiditySeconds(rememberMeTokenValiditySeconds);
         http.formLogin()
                 .loginProcessingUrl("/auth/login")
                 .successHandler(successLoginHandler())
@@ -76,6 +89,21 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
                 response.sendError(HttpStatus.UNAUTHORIZED.value());
             }
         });
+        http.rememberMe()
+                .userDetailsService(userDetailsService())
+                .tokenValiditySeconds(rememberMeTokenValiditySeconds);
+
+        if (enablePersistentLogins) {
+            http.rememberMe()
+                    .key(rememberMeKey)
+                    .rememberMeServices(persistentTokenBasedRememberMeServices());
+        } else {
+            http.rememberMe()
+                    .userDetailsService(userDetailsService())
+                    .tokenRepository(inMempersistentTokenRepository());
+
+        }
+
         http.addFilterAfter(switchUserFilter(), FilterSecurityInterceptor.class);
     }
 
@@ -106,11 +134,6 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
             response.setContentType("application/json;charset=UTF-8");
             response.getWriter().println("{}");
         };
-    }
-
-    @Bean
-    public PersistentTokenRepository persistentTokenRepository() {
-        return new InMemoryTokenRepositoryImpl();
     }
 
     @Bean
@@ -162,5 +185,33 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
 
             return new AuthenticatedUserDetails(user);
         };
+    }
+
+    @Bean
+    @ConditionalOnProperty(name ="auth-starter.enable-persistent-logins", havingValue = "true")
+    public PersistentTokenRepository persistentTokenRepository() {
+        JdbcTokenRepositoryImpl jdbcTokenRepository = new JdbcTokenRepositoryImpl();
+
+        jdbcTokenRepository.setCreateTableOnStartup(false);
+        jdbcTokenRepository.setDataSource(dataSource);
+
+        return jdbcTokenRepository;
+    }
+
+    @Bean
+    @ConditionalOnProperty(name ="auth-starter.enable-persistent-logins", havingValue = "false")
+    public PersistentTokenRepository inMempersistentTokenRepository() {
+        return new InMemoryTokenRepositoryImpl();
+    }
+
+    @Bean
+    @ConditionalOnProperty(name ="auth-starter.enable-persistent-logins", havingValue = "true")
+    public RememberMeServices persistentTokenBasedRememberMeServices() {
+        PersistentTokenBasedRememberMeServices services = new PersistentTokenBasedRememberMeServices(rememberMeKey, userDetailsService(), persistentTokenRepository());
+
+        services.setAlwaysRemember(true);
+        services.setTokenValiditySeconds(rememberMeTokenValiditySeconds);
+
+        return services;
     }
 }
