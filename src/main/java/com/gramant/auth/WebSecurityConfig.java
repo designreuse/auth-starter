@@ -52,14 +52,15 @@ import static java.util.Collections.singletonList;
 public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
 
     private final DataSource dataSource;
+    private final AuthProperties authProperties;
 
     private static String[] allowedOrigins = new String[] {"http://localhost:80"};
-    @Value("${auth-starter.remember-me-key}")
-    private String rememberMeKey;
-    @Value("${auth-starter.remember-me-token-validity-seconds}")
-    private Integer rememberMeTokenValiditySeconds;
-    @Value("${auth-starter.enable-persistent-logins}")
-    private Boolean enablePersistentLogins;
+//    @Value("${auth-starter.remember-me-key}")
+//    private String rememberMeKey;
+//    @Value("${auth-starter.remember-me-token-validity-seconds}")
+//    private Integer rememberMeTokenValiditySeconds;
+//    @Value("${auth-starter.enable-persistent-logins}")
+//    private Boolean enablePersistentLogins;
 
     @Override
     protected void configure(HttpSecurity http) throws Exception {
@@ -91,11 +92,11 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
         });
         http.rememberMe()
                 .userDetailsService(userDetailsService())
-                .tokenValiditySeconds(rememberMeTokenValiditySeconds);
+                .tokenValiditySeconds(authProperties.getRememberMeTokenValiditySeconds());
 
-        if (enablePersistentLogins) {
+        if (authProperties.getEnablePersistentLogins()) {
             http.rememberMe()
-                    .key(rememberMeKey)
+                    .key(authProperties.getRemeberMeKey())
                     .rememberMeServices(persistentTokenBasedRememberMeServices());
         } else {
             http.rememberMe()
@@ -207,10 +208,10 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
     @Bean
     @ConditionalOnProperty(name ="auth-starter.enable-persistent-logins", havingValue = "true")
     public RememberMeServices persistentTokenBasedRememberMeServices() {
-        PersistentTokenBasedRememberMeServices services = new PersistentTokenBasedRememberMeServices(rememberMeKey, userDetailsService(), persistentTokenRepository());
+        PersistentTokenBasedRememberMeServices services = new PersistentTokenBasedRememberMeServices(authProperties.getRemeberMeKey(), userDetailsService(), persistentTokenRepository());
 
         services.setAlwaysRemember(true);
-        services.setTokenValiditySeconds(rememberMeTokenValiditySeconds);
+        services.setTokenValiditySeconds(authProperties.getRememberMeTokenValiditySeconds());
 
         return services;
     }
