@@ -1,17 +1,11 @@
 package com.gramant.auth;
 
 import com.gramant.auth.app.ManageUser;
-import com.gramant.auth.domain.AuthenticatedUserDetails;
-import com.gramant.auth.domain.User;
-import com.gramant.auth.domain.ex.UserMissingException;
 import lombok.RequiredArgsConstructor;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.DependsOn;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -21,7 +15,6 @@ import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.builders.WebSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
 import org.springframework.security.core.userdetails.UserDetailsService;
-import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.access.intercept.FilterSecurityInterceptor;
@@ -50,12 +43,11 @@ import static java.util.Collections.singletonList;
  */
 @Configuration
 @RequiredArgsConstructor
-@ConditionalOnBean(ManageUser.class)
 public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
 
     private final DataSource dataSource;
     private final AuthProperties authProperties;
-    private final ManageUser manageUser;
+    private final DefaultUserDetailsService defaultUserDetailsService;
 
     private static String[] allowedOrigins = new String[] {"http://localhost:80"};
 
@@ -88,7 +80,7 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
             }
         });
         http.rememberMe()
-                .userDetailsService(userDetailsService(manageUser))
+                .userDetailsService(defaultUserDetailsService)
                 .tokenValiditySeconds(authProperties.getRememberMeTokenValiditySeconds());
 
         if (authProperties.getEnablePersistentLogins()) {
@@ -97,7 +89,7 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
                     .rememberMeServices(persistentTokenBasedRememberMeServices());
         } else {
             http.rememberMe()
-                    .userDetailsService(userDetailsService(manageUser))
+                    .userDetailsService(defaultUserDetailsService)
                     .tokenRepository(inMempersistentTokenRepository());
 
         }
@@ -157,7 +149,7 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
     @Bean
     public SwitchUserFilter switchUserFilter() {
         SwitchUserFilter filter = new SwitchUserFilter();
-        filter.setUserDetailsService(userDetailsService(manageUser));
+        filter.setUserDetailsService(defaultUserDetailsService);
         filter.setTargetUrl("/");
         return filter;
     }
@@ -168,21 +160,6 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
         provider.setUserDetailsService(userDetailsService);
         provider.setPasswordEncoder(passwordEncoder);
         return new ProviderManager(singletonList(provider));
-    }
-
-    @Bean
-    public UserDetailsService userDetailsService(ManageUser userManager) {
-        return (username) -> {
-            User user;
-
-            try {
-                user = userManager.findEnabledByEmail(username);
-            } catch (UserMissingException e) {
-                throw new UsernameNotFoundException("User " + username + " is not found");
-            }
-
-            return new AuthenticatedUserDetails(user);
-        };
     }
 
     @Bean
@@ -205,7 +182,7 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
     @Bean
     @ConditionalOnProperty(name ="auth-starter.enable-persistent-logins", havingValue = "true")
     public RememberMeServices persistentTokenBasedRememberMeServices() {
-        PersistentTokenBasedRememberMeServices services = new PersistentTokenBasedRememberMeServices(authProperties.getRemeberMeKey(), userDetailsService(manageUser), persistentTokenRepository());
+        PersistentTokenBasedRememberMeServices services = new PersistentTokenBasedRememberMeServices(authProperties.getRemeberMeKey(), defaultUserDetailsService, persistentTokenRepository());
 
         services.setAlwaysRemember(true);
         services.setTokenValiditySeconds(authProperties.getRememberMeTokenValiditySeconds());

@@ -29,7 +29,7 @@ import javax.sql.DataSource;
 
 @Configuration
 @ConditionalOnBean(DataSource.class)
-@ConditionalOnClass(UserDetailsService.class)
+@ConditionalOnClass(DefaultUserDetailsService.class)
 @AutoConfigureAfter({DataSourceAutoConfiguration.class, SecurityAutoConfiguration.class})
 @EnableConfigurationProperties(AuthProperties.class)
 @Import(WebSecurityConfig.class)
