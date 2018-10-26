@@ -1,6 +1,8 @@
 package com.gramant.auth;
 
 import com.gramant.auth.app.DefaultUserDetailsService;
+import com.gramant.auth.app.DefaultUserManager;
+import com.gramant.auth.app.ManageUser;
 import lombok.RequiredArgsConstructor;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Bean;
@@ -170,6 +172,11 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
         jdbcTokenRepository.setDataSource(dataSource);
 
         return jdbcTokenRepository;
+    }
+    
+    @Bean
+    public DefaultUserDetailsService defaultUserDetailsService(ManageUser manageUser) {
+        return new DefaultUserDetailsService(manageUser);
     }
 
     @Bean
