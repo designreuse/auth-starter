@@ -2,11 +2,13 @@ package com.gramant.auth.app;
 
 import com.gramant.auth.domain.User;
 import com.gramant.auth.domain.UserRepository;
+import com.gramant.auth.domain.event.UserCreatedEvent;
 import com.gramant.auth.ports.rest.request.CommunicationRequest;
 import com.gramant.auth.ports.rest.request.UpdateActivityRequest;
 import com.gramant.auth.ports.rest.request.UserRegistrationRequest;
 import com.gramant.auth.ports.rest.request.UserUpdateRequest;
 import lombok.AllArgsConstructor;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -28,12 +30,13 @@ public class DefaultUserManager implements ManageUser {
     private PasswordEncoder encoder;
     private Notifier notifier;
     private RoleProvider roleProvider;
+    private final ApplicationEventPublisher eventPublisher;
 
     @Override
     public User add(@NotNull @Valid UserRegistrationRequest userRegistrationRequest) {
         User createdUser = userRepository
                 .add(userRegistrationRequest.asUserWithMappedPassword(password -> encoder.encode(password), roleProvider.defaultRole()));
-        // todo: [#events] UserCreatedEvent
+        eventPublisher.publishEvent(new UserCreatedEvent(createdUser.id(), createdUser.roles()));
         notifier.registrationSuccess(createdUser);
         return createdUser;
     }
