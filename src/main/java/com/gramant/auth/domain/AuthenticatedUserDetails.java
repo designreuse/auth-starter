@@ -31,7 +31,7 @@ public class AuthenticatedUserDetails implements UserDetails {
 
     @Override
     public String getUsername() {
-        return user.id().asString();
+        return user.email();
     }
 
     @Override
