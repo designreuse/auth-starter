@@ -188,7 +188,7 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
             User user;
 
             try {
-                user = queryUser.findEnabledById(UserId.of(username));
+                user = queryUser.findEnabledByEmail(username);
             } catch (UserMissingException e) {
                 throw new UsernameNotFoundException("User " + username + " is not found");
             }
