@@ -9,7 +9,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.Optional;
 
-@RestController
+@ResponseBody
 @RequestMapping("/auth/profile")
 @AllArgsConstructor
 public class ProfileResource {

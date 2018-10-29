@@ -10,7 +10,6 @@ import com.gramant.auth.ports.rest.request.UserUpdateRequest;
 import lombok.AllArgsConstructor;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.validation.annotation.Validated;
 
@@ -21,7 +20,6 @@ import java.util.Collection;
 
 import static java.util.stream.Collectors.toList;
 
-@Service
 @AllArgsConstructor
 @Validated
 public class DefaultUserManager implements ManageUser {

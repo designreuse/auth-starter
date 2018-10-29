@@ -8,7 +8,6 @@ import com.gramant.auth.ports.rest.request.PasswordResetRequest;
 import com.gramant.auth.ports.rest.request.PasswordUpdateRequest;
 import lombok.AllArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.validation.annotation.Validated;
 
@@ -27,7 +26,6 @@ public interface PasswordResetOperations {
 
 
     // default implementation
-    @Service
     @AllArgsConstructor
     @Validated
     class Default implements PasswordResetOperations {
