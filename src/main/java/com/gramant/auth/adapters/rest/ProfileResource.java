@@ -1,7 +1,7 @@
-package com.gramant.auth.ports.rest;
+package com.gramant.auth.adapters.rest;
 
 import com.gramant.auth.domain.AuthenticatedUserDetails;
-import com.gramant.auth.ports.rest.representation.PrivilegedUserRepresentation;
+import com.gramant.auth.adapters.rest.representation.PrivilegedUserRepresentation;
 import lombok.AllArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
