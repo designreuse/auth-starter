@@ -15,9 +15,13 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean
 import org.springframework.boot.autoconfigure.jdbc.DataSourceAutoConfiguration;
 import org.springframework.boot.autoconfigure.security.servlet.SecurityAutoConfiguration;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
+import org.springframework.context.event.ApplicationEventMulticaster;
+import org.springframework.context.event.SimpleApplicationEventMulticaster;
+import org.springframework.core.task.SimpleAsyncTaskExecutor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
@@ -98,8 +102,8 @@ public class AuthConfiguration {
     }
 
     @Bean
-    public ManageUser manageUser(UserRepository userRepository, Notifier notifier, RoleProvider roleProvider) {
-        return new DefaultUserManager(userRepository, passwordEncoder(), notifier, roleProvider);
+    public ManageUser manageUser(UserRepository userRepository, Notifier notifier, RoleProvider roleProvider, ApplicationEventPublisher eventPublisher) {
+        return new DefaultUserManager(userRepository, passwordEncoder(), notifier, roleProvider, eventPublisher);
     }
 
     @Bean
@@ -122,5 +126,12 @@ public class AuthConfiguration {
     @ConditionalOnMissingBean
     public RoleProvider roleProvider() {
         return new RoleProvider.Default(PrivilegedRole.admin(), PrivilegedRole.user());
+    }
+
+    @Bean
+    public ApplicationEventMulticaster applicationEventMulticaster() {
+        SimpleApplicationEventMulticaster eventMulticaster = new SimpleApplicationEventMulticaster();
+        eventMulticaster.setTaskExecutor(new SimpleAsyncTaskExecutor());
+        return eventMulticaster;
     }
 }
