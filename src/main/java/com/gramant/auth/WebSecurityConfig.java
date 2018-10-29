@@ -1,6 +1,5 @@
 package com.gramant.auth;
 
-import com.gramant.auth.app.ManageUser;
 import com.gramant.auth.app.QueryUser;
 import com.gramant.auth.domain.AuthenticatedUserDetails;
 import com.gramant.auth.domain.User;
@@ -49,15 +48,15 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
 
     private final DataSource dataSource;
     private final AuthProperties authProperties;
-    private final ManageUser userManager;
+    private final QueryUser queryUser;
 
     private static String[] allowedOrigins = new String[] {"http://localhost:80"};
 
     @Autowired
-    public WebSecurityConfig(DataSource dataSource, AuthProperties authProperties, ManageUser manageUser) {
+    public WebSecurityConfig(DataSource dataSource, AuthProperties authProperties, QueryUser queryUser) {
         this.dataSource = dataSource;
         this.authProperties = authProperties;
-        this.userManager = manageUser;
+        this.queryUser = queryUser;
     }
 
     @Override
