@@ -3,7 +3,6 @@ package com.gramant.auth;
 import com.gramant.auth.app.ManageUser;
 import com.gramant.auth.domain.AuthenticatedUserDetails;
 import com.gramant.auth.domain.User;
-import com.gramant.auth.domain.UserId;
 import com.gramant.auth.domain.ex.UserMissingException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
@@ -49,15 +48,15 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
 
     private final DataSource dataSource;
     private final AuthProperties authProperties;
-    private final ManageUser userManager;
+    private final QueryUser queryUser;
 
     private static String[] allowedOrigins = new String[] {"http://localhost:80"};
 
     @Autowired
-    public WebSecurityConfig(DataSource dataSource, AuthProperties authProperties, ManageUser manageUser) {
+    public WebSecurityConfig(DataSource dataSource, AuthProperties authProperties, QueryUser queryUser) {
         this.dataSource = dataSource;
         this.authProperties = authProperties;
-        this.userManager = manageUser;
+        this.queryUser = queryUser;
     }
 
     @Override
@@ -189,7 +188,7 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
             User user;
 
             try {
-                user = userManager.findEnabledById(UserId.of(username));
+                user = queryUser.findEnabledByEmail(username);
             } catch (UserMissingException e) {
                 throw new UsernameNotFoundException("User " + username + " is not found");
             }

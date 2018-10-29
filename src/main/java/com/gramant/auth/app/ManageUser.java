@@ -18,14 +18,6 @@ public interface ManageUser {
 
     User update(@NotNull @Valid UserUpdateRequest userUpdateRequest);
 
-    User findEnabledByEmail(@NotNull String email) throws UserMissingException;
-
-    User findEnabledById(@NotNull UserId userId) throws UserMissingException;
-
-    List<User> list();
-
-    User get(@NotNull UserId userId);
-
     /**
      *
      * @param request contains target id list
