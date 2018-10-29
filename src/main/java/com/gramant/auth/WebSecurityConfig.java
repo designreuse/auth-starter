@@ -5,6 +5,8 @@ import com.gramant.auth.app.QueryUser;
 import com.gramant.auth.domain.AuthenticatedUserDetails;
 import com.gramant.auth.domain.User;
 import com.gramant.auth.domain.ex.UserMissingException;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
@@ -17,13 +19,15 @@ import org.springframework.security.config.annotation.web.builders.WebSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
-import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.access.intercept.FilterSecurityInterceptor;
 import org.springframework.security.web.authentication.AuthenticationFailureHandler;
 import org.springframework.security.web.authentication.AuthenticationSuccessHandler;
+import org.springframework.security.web.authentication.RememberMeServices;
 import org.springframework.security.web.authentication.logout.HttpStatusReturningLogoutSuccessHandler;
 import org.springframework.security.web.authentication.rememberme.InMemoryTokenRepositoryImpl;
+import org.springframework.security.web.authentication.rememberme.JdbcTokenRepositoryImpl;
+import org.springframework.security.web.authentication.rememberme.PersistentTokenBasedRememberMeServices;
 import org.springframework.security.web.authentication.rememberme.PersistentTokenRepository;
 import org.springframework.security.web.authentication.switchuser.SwitchUserFilter;
 import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
@@ -32,6 +36,7 @@ import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
 import javax.servlet.http.Cookie;
+import javax.sql.DataSource;
 import java.util.Arrays;
 
 import static java.util.Collections.singletonList;
@@ -42,8 +47,18 @@ import static java.util.Collections.singletonList;
 @Configuration
 public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
 
+    private final DataSource dataSource;
+    private final AuthProperties authProperties;
+    private final ManageUser userManager;
+
     private static String[] allowedOrigins = new String[] {"http://localhost:80"};
-    private static int rememberMeTokenValiditySeconds = 24 * 60 * 60;
+
+    @Autowired
+    public WebSecurityConfig(DataSource dataSource, AuthProperties authProperties, ManageUser manageUser) {
+        this.dataSource = dataSource;
+        this.authProperties = authProperties;
+        this.userManager = manageUser;
+    }
 
     @Override
     protected void configure(HttpSecurity http) throws Exception {
@@ -60,10 +75,6 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
                 .invalidateHttpSession(true)
                 .deleteCookies("JSESSIONID")
                 .logoutSuccessHandler(new HttpStatusReturningLogoutSuccessHandler(HttpStatus.OK));
-        http.rememberMe()
-                .userDetailsService(userDetailsService())
-                .tokenRepository(persistentTokenRepository())
-                .tokenValiditySeconds(rememberMeTokenValiditySeconds);
         http.formLogin()
                 .loginProcessingUrl("/auth/login")
                 .successHandler(successLoginHandler())
@@ -77,6 +88,16 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
                 response.sendError(HttpStatus.UNAUTHORIZED.value());
             }
         });
+        http.rememberMe()
+                .userDetailsService(userDetailsService())
+                .tokenValiditySeconds(authProperties.getRememberMeTokenValiditySeconds());
+
+        if (authProperties.getEnablePersistentLogins()) {
+            http.rememberMe()
+                    .key(authProperties.getRemeberMeKey())
+                    .rememberMeServices(persistentTokenBasedRememberMeServices());
+        }
+
         http.addFilterAfter(switchUserFilter(), FilterSecurityInterceptor.class);
     }
 
@@ -110,11 +131,6 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
     }
 
     @Bean
-    public PersistentTokenRepository persistentTokenRepository() {
-        return new InMemoryTokenRepositoryImpl();
-    }
-
-    @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
         configuration.setAllowedOrigins(singletonList("*"));
@@ -127,11 +143,6 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         source.registerCorsConfiguration("/**", configuration);
         return source;
-    }
-
-    @Bean
-    public PasswordEncoder passwordEncoder() {
-        return new BCryptPasswordEncoder();
     }
 
     @Bean
@@ -151,8 +162,30 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
     }
 
     @Bean
-    public UserDetailsService userDetailsService(QueryUser queryUser) {
-        return (username) -> {
+    @ConditionalOnProperty(name ="auth-starter.enable-persistent-logins", havingValue = "true")
+    public PersistentTokenRepository persistentTokenRepository() {
+        JdbcTokenRepositoryImpl jdbcTokenRepository = new JdbcTokenRepositoryImpl();
+
+        jdbcTokenRepository.setCreateTableOnStartup(false);
+        jdbcTokenRepository.setDataSource(dataSource);
+
+        return jdbcTokenRepository;
+    }
+
+    @Bean
+    @ConditionalOnProperty(name ="auth-starter.enable-persistent-logins", havingValue = "true")
+    public RememberMeServices persistentTokenBasedRememberMeServices() {
+        PersistentTokenBasedRememberMeServices services = new PersistentTokenBasedRememberMeServices(authProperties.getRemeberMeKey(), userDetailsService(), persistentTokenRepository());
+
+        services.setAlwaysRemember(true);
+        services.setTokenValiditySeconds(authProperties.getRememberMeTokenValiditySeconds());
+
+        return services;
+    }
+
+    @Bean
+    public UserDetailsService userDetailsService() {
+        return username -> {
             User user;
 
             try {

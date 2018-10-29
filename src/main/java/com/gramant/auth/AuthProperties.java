@@ -1,12 +1,15 @@
 package com.gramant.auth;
 
+import lombok.Getter;
+import lombok.Setter;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 
-import java.util.List;
-
 @ConfigurationProperties("auth-starter")
+@Getter
+@Setter
 public class AuthProperties {
-    String username;
-
-
+    private String username;
+    private Boolean enablePersistentLogins = false;
+    private Integer rememberMeTokenValiditySeconds = 86400;
+    private String remeberMeKey;
 }
