@@ -95,10 +95,6 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
             http.rememberMe()
                     .key(authProperties.getRemeberMeKey())
                     .rememberMeServices(persistentTokenBasedRememberMeServices());
-        } else {
-            http.rememberMe()
-                    .tokenRepository(inMemPersistentTokenRepository());
-
         }
 
         http.addFilterAfter(switchUserFilter(), FilterSecurityInterceptor.class);
@@ -173,12 +169,6 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
         jdbcTokenRepository.setDataSource(dataSource);
 
         return jdbcTokenRepository;
-    }
-
-    @Bean
-    @ConditionalOnProperty(name ="auth-starter.enable-persistent-logins", havingValue = "false")
-    public PersistentTokenRepository inMemPersistentTokenRepository() {
-        return new InMemoryTokenRepositoryImpl();
     }
 
     @Bean
