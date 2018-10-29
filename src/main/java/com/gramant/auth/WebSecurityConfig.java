@@ -1,8 +1,9 @@
 package com.gramant.auth;
 
-import com.gramant.auth.app.ManageUser;
+import com.gramant.auth.app.QueryUser;
 import com.gramant.auth.domain.AuthenticatedUserDetails;
 import com.gramant.auth.domain.User;
+import com.gramant.auth.domain.UserId;
 import com.gramant.auth.domain.ex.UserMissingException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
@@ -24,7 +25,6 @@ import org.springframework.security.web.authentication.AuthenticationFailureHand
 import org.springframework.security.web.authentication.AuthenticationSuccessHandler;
 import org.springframework.security.web.authentication.RememberMeServices;
 import org.springframework.security.web.authentication.logout.HttpStatusReturningLogoutSuccessHandler;
-import org.springframework.security.web.authentication.rememberme.InMemoryTokenRepositoryImpl;
 import org.springframework.security.web.authentication.rememberme.JdbcTokenRepositoryImpl;
 import org.springframework.security.web.authentication.rememberme.PersistentTokenBasedRememberMeServices;
 import org.springframework.security.web.authentication.rememberme.PersistentTokenRepository;
@@ -188,7 +188,7 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
             User user;
 
             try {
-                user = queryUser.findEnabledByEmail(username);
+                user = queryUser.findEnabledById(UserId.of(username));
             } catch (UserMissingException e) {
                 throw new UsernameNotFoundException("User " + username + " is not found");
             }
