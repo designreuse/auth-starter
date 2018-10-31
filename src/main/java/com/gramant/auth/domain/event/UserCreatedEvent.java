@@ -7,6 +7,7 @@ import lombok.Getter;
 import lombok.experimental.Accessors;
 
 import java.util.List;
+import java.util.Map;
 
 @Getter
 @Accessors(fluent = true)
@@ -14,4 +15,5 @@ import java.util.List;
 public class UserCreatedEvent {
     private final UserId id;
     private final List<PrivilegedRole> roles;
+    private final Map<String, String> additionalProperties;
 }

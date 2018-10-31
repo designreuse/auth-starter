@@ -34,8 +34,12 @@ public class DefaultUserManager implements ManageUser {
     public User add(@NotNull @Valid UserRegistrationRequest userRegistrationRequest) {
         User createdUser = userRepository
                 .add(userRegistrationRequest.asUserWithMappedPassword(password -> encoder.encode(password), roleProvider.defaultRole()));
-        eventPublisher.publishEvent(new UserCreatedEvent(createdUser.id(), createdUser.roles()));
-        notifier.registrationSuccess(createdUser);
+        eventPublisher.publishEvent(new UserCreatedEvent(createdUser.id(), createdUser.roles(), userRegistrationRequest.getAdditionalProperties()));
+        try {
+            notifier.registrationSuccess(createdUser);
+        } catch (UnsupportedOperationException e) {
+
+        }
         return createdUser;
     }
 

@@ -9,6 +9,7 @@ import lombok.Getter;
 
 import javax.validation.constraints.NotEmpty;
 import javax.validation.constraints.Size;
+import java.util.Map;
 import java.util.function.Function;
 
 import static java.util.Collections.singletonList;
@@ -26,13 +27,17 @@ public class UserRegistrationRequest {
     @Size(min = 8)
     private String password;
 
+    private Map<String, String> additionalProperties;
+
     @JsonCreator
     public UserRegistrationRequest(@JsonProperty("email") String email,
                                    @JsonProperty("id") String id,
-                                   @JsonProperty("password") String password) {
+                                   @JsonProperty("password") String password,
+                                   @JsonProperty("additionalProperties") Map<String, String> additionalProperties) {
         this.email = email;
         this.password = password;
         this.id = id;
+        this.additionalProperties = additionalProperties;
     }
 
     public User asUserWithMappedPassword(Function<String, String> passwordMapper, PrivilegedRole defaultRole) {
