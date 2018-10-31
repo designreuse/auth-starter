@@ -1,11 +1,13 @@
 package com.gramant.auth;
 
+import com.gramant.auth.app.AdditionalUserDataFetchHandler;
 import com.gramant.auth.app.QueryUser;
 import com.gramant.auth.domain.AuthenticatedUserDetails;
 import com.gramant.auth.domain.User;
 import com.gramant.auth.domain.UserId;
 import com.gramant.auth.domain.ex.UserMissingException;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -183,6 +185,12 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
     }
 
     @Bean
+    @ConditionalOnMissingBean
+    public AdditionalUserDataFetchHandler additionalUserDataFetchHandler() {
+        return null;
+    }
+
+    @Bean
     public UserDetailsService userDetailsService() {
         return username -> {
             User user;
@@ -192,8 +200,7 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
             } catch (UserMissingException e) {
                 throw new UsernameNotFoundException("User " + username + " is not found");
             }
-
-            return new AuthenticatedUserDetails(user);
+            return new AuthenticatedUserDetails(user, additionalUserDataFetchHandler().fetchAdditionalData(user));
         };
     }
 }

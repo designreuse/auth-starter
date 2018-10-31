@@ -12,9 +12,11 @@ import static java.util.stream.Collectors.toList;
 @ToString(of = {"user"})
 public class AuthenticatedUserDetails implements UserDetails {
     private User user;
+    private Object additionalData;
 
-    public AuthenticatedUserDetails(User user) {
+    public AuthenticatedUserDetails(User user, Object additionalData) {
         this.user = user;
+        this.additionalData = additionalData;
     }
 
     @Override
@@ -56,5 +58,9 @@ public class AuthenticatedUserDetails implements UserDetails {
 
     public User getUser() {
         return user;
+    }
+
+    public Object getAdditionalData() {
+        return additionalData;
     }
 }

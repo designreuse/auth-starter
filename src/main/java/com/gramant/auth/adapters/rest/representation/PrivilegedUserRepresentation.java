@@ -13,6 +13,7 @@ public class PrivilegedUserRepresentation {
     private String id;
     private String email;
     private List<String> privileges;
+    private Object additionalData;
 
     public PrivilegedUserRepresentation(AuthenticatedUserDetails userDetails) {
         User user = userDetails.getUser();
@@ -20,5 +21,6 @@ public class PrivilegedUserRepresentation {
         this.id = user.id().asString();
         this.email = user.email();
         this.privileges = userDetails.getAuthorities().stream().map(GrantedAuthority::getAuthority).collect(Collectors.toList());
+        this.additionalData = userDetails.getAdditionalData();
     }
 }
