@@ -24,3 +24,16 @@ Since redefined methods are controller-level, assumed that you return from them 
 
 ##### List of available customizable handlers
 * `CreateUserHandler` 
+
+
+---
+###Additional principal data
+Class `AuthenticatedUserDetails` contains field of type `Object` named `additionalUserData`.
+By default this field is empty, but you can put there any additional data, for instance, first name and last name.
+To achieve this you should define this bean:
+```
+@Bean
+public AdditionalUserDataFetchHandler additionalUserDataFetchHandler() {
+    return user -> myCustomUserDetails.getSomeSpecialData(user.id());
+}
+```
