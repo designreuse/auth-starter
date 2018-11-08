@@ -8,10 +8,12 @@ import lombok.Setter;
 import org.springframework.jdbc.core.BatchPreparedStatementSetter;
 import org.springframework.jdbc.core.BeanPropertyRowMapper;
 import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.jdbc.core.RowMapper;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.sql.PreparedStatement;
+import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.Collection;
 import java.util.Collections;
@@ -24,6 +26,7 @@ import static java.util.stream.Collectors.toList;
 public class JdbcUserRepository implements UserRepository {
 
     private static final BeanPropertyRowMapper<UserData> USER_DATA_ROW_MAPPER = new BeanPropertyRowMapper<>(UserData.class);
+    private static final RowMapper<RoleId> ROLE_ID_ROW_MAPPER = (rs, rowNum) -> new RoleId(rs.getString("role_id"));
 
     private JdbcTemplate jdbcTemplate;
     private NamedParameterJdbcTemplate namedParameterJdbcTemplate;
@@ -122,7 +125,8 @@ public class JdbcUserRepository implements UserRepository {
     }
 
     private List<PrivilegedRole> getRoles(String userId) {
-        List<RoleId> roleIds = jdbcTemplate.queryForList("select role_id from authorities where user_id = ?", new Object[]{userId}, RoleId.class);
+        List<RoleId> roleIds = jdbcTemplate.query("select role_id from authorities where user_id = ?",
+                new Object[]{userId}, ROLE_ID_ROW_MAPPER);
         return roleIds.stream().map(roleProvider::role).map(o -> o.orElse(PrivilegedRole.unknown())).collect(toList());
     }
 
