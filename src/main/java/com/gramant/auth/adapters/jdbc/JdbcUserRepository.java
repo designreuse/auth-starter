@@ -13,7 +13,6 @@ import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.sql.PreparedStatement;
-import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.Collection;
 import java.util.Collections;
@@ -58,8 +57,8 @@ public class JdbcUserRepository implements UserRepository {
     @Override
     @Transactional
     public User add(User user) {
-        jdbcTemplate.update("insert into users (id, email, password, enabled, last_login) values (?, ?, ?, true, null)",
-                user.id().asString(), user.email(), user.password());
+        jdbcTemplate.update("insert into users (id, email, password, enabled, last_login) values (?, ?, ?, ?, ?)",
+                user.id().asString(), user.email(), user.password(), user.enabled(), user.lastLogin());
 
         jdbcTemplate.batchUpdate("insert into authorities (user_id, role_id) values (?, ?)", new BatchPreparedStatementSetter() {
             @Override

@@ -42,6 +42,6 @@ public class UserRegistrationRequest {
 
     public User asUserWithMappedPassword(Function<String, String> passwordMapper, PrivilegedRole defaultRole) {
         return User.builder().email(email).password(passwordMapper.apply(password)).id(UserId.of(id))
-                .roles(singletonList(defaultRole)).build();
+                .enabled(true).lastLogin(null).roles(singletonList(defaultRole)).build();
     }
 }
