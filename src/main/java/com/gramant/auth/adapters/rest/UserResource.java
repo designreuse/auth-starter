@@ -10,9 +10,12 @@ import com.gramant.auth.domain.ex.UserMissingException;
 import com.gramant.auth.adapters.rest.handlers.CreateUserHandler;
 import com.gramant.auth.adapters.rest.request.*;
 import lombok.AllArgsConstructor;
+import lombok.Value;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
+
+import javax.validation.Valid;
 
 @ResponseBody
 @RequestMapping("/auth/users")
@@ -45,6 +48,12 @@ public class UserResource {
     @PostMapping("/message")
     public ResponseEntity communicate(@RequestBody CommunicationRequest request) {
         userManager.communicate(request);
+        return ResponseEntity.ok().build();
+    }
+
+    @PostMapping("/update")
+    public ResponseEntity update(@RequestBody @Valid UserUpdateRequest request) throws UserMissingException {
+        userManager.update(request);
         return ResponseEntity.ok().build();
     }
 
