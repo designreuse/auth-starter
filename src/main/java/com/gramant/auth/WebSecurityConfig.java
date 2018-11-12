@@ -209,6 +209,7 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
             } catch (UserMissingException e) {
                 throw new UsernameNotFoundException("User " + username + " is not found");
             }
+
             return new AuthenticatedUserDetails(user, additionalUserDataFetchHandler().fetchAdditionalData(user));
         };
     }
