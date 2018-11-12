@@ -11,6 +11,7 @@ import com.gramant.auth.adapters.rest.handlers.CreateUserHandler;
 import com.gramant.auth.adapters.rest.request.*;
 import lombok.AllArgsConstructor;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 @ResponseBody
@@ -28,12 +29,14 @@ public class UserResource {
     }
 
     @PutMapping("/deactivation")
+    @PreAuthorize("hasAuthority('EDIT_USERS')")
     public ResponseEntity deactivateAll(@RequestBody UpdateActivityRequest request) {
         userManager.batchUpdateActivity(request, false);
         return ResponseEntity.noContent().build();
     }
 
     @PutMapping("/activation")
+    @PreAuthorize("hasAuthority('EDIT_USERS')")
     public ResponseEntity activateAll(@RequestBody UpdateActivityRequest request) {
         userManager.batchUpdateActivity(request, true);
         return ResponseEntity.noContent().build();

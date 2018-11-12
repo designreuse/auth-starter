@@ -8,6 +8,7 @@ import lombok.experimental.Accessors;
 
 import java.util.List;
 
+import static java.util.Arrays.asList;
 import static java.util.Collections.*;
 
 @Getter
@@ -21,7 +22,7 @@ public final class PrivilegedRole {
     private final List<PrivilegeId> privileges;
 
     public static PrivilegedRole admin() {
-        return new PrivilegedRole(RoleId.ADMIN, singletonList(PrivilegeId.ALL));
+        return new PrivilegedRole(RoleId.ADMIN, asList(PrivilegeId.ALL, PrivilegeId.EDIT_USERS));
     }
 
     public static PrivilegedRole unknown() {

@@ -10,6 +10,7 @@ import java.io.Serializable;
 public final class PrivilegeId implements Serializable {
 
     public static final PrivilegeId ALL = new PrivilegeId("ALL");
+    public static final PrivilegeId EDIT_USERS = new PrivilegeId("EDIT_USERS");
 
     private final String value;
 
