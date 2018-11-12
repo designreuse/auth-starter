@@ -60,19 +60,7 @@ public class JdbcUserRepository implements UserRepository {
         jdbcTemplate.update("insert into users (id, email, password, enabled, last_login) values (?, ?, ?, ?, ?)",
                 user.id().asString(), user.email(), user.password(), user.enabled(), user.lastLogin());
 
-        jdbcTemplate.batchUpdate("insert into authorities (user_id, role_id) values (?, ?)", new BatchPreparedStatementSetter() {
-            @Override
-            public void setValues(PreparedStatement ps, int i) throws SQLException {
-                PrivilegedRole role = user.roles().get(i);
-                ps.setString(1, user.id().asString());
-                ps.setString(2, role.id().asString());
-            }
-
-            @Override
-            public int getBatchSize() {
-                return user.roles().size();
-            }
-        });
+        jdbcTemplate.batchUpdate("insert into authorities (user_id, role_id) values (?, ?)", new AuthoritiesBatchPsSetter(user));
         return user;
     }
 
@@ -121,6 +109,9 @@ public class JdbcUserRepository implements UserRepository {
     public void update(User user) {
         jdbcTemplate.update("update users set email = ?, password = ?, enabled = ?, last_login = ? where id  = ?",
                 user.email(), user.password(), user.enabled(), user.lastLogin(), user.id().asString());
+
+        jdbcTemplate.update("delete from authorities where user_id = ?", user.id().asString());
+        jdbcTemplate.batchUpdate("insert into authorities (user_id, role_id) values (?, ?)", new AuthoritiesBatchPsSetter(user));
     }
 
     private List<PrivilegedRole> getRoles(String userId) {
@@ -139,6 +130,24 @@ public class JdbcUserRepository implements UserRepository {
 
         User asUser(List<PrivilegedRole> roles) {
             return new User(UserId.of(id), email, password, enabled, roles, null);
+        }
+    }
+
+    @AllArgsConstructor
+    static class AuthoritiesBatchPsSetter implements BatchPreparedStatementSetter {
+
+        private final User user;
+
+        @Override
+        public void setValues(PreparedStatement ps, int i) throws SQLException {
+            PrivilegedRole role = user.roles().get(i);
+            ps.setString(1, user.id().asString());
+            ps.setString(2, role.id().asString());
+        }
+
+        @Override
+        public int getBatchSize() {
+            return user.roles().size();
         }
     }
 }

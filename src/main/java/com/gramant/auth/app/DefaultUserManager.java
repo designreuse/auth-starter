@@ -7,6 +7,8 @@ import com.gramant.auth.adapters.rest.request.CommunicationRequest;
 import com.gramant.auth.adapters.rest.request.UpdateActivityRequest;
 import com.gramant.auth.adapters.rest.request.UserRegistrationRequest;
 import com.gramant.auth.adapters.rest.request.UserUpdateRequest;
+import com.gramant.auth.domain.ex.RoleMissingException;
+import com.gramant.auth.domain.ex.UserMissingException;
 import lombok.AllArgsConstructor;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -17,6 +19,7 @@ import javax.validation.Valid;
 import javax.validation.constraints.NotNull;
 
 import java.util.Collection;
+import java.util.Optional;
 
 import static java.util.stream.Collectors.toList;
 
@@ -44,8 +47,14 @@ public class DefaultUserManager implements ManageUser {
     }
 
     @Override
-    public User update(@NotNull @Valid UserUpdateRequest userUpdateRequest) {
-        return null;
+    public User update(@NotNull @Valid UserUpdateRequest request) throws UserMissingException {
+        Optional<User> oldUser = userRepository.get(request.getId());
+        User user = oldUser.orElseThrow(() -> new UserMissingException(request.getId()))
+                .updatedWith(request.getEmail(), request.getEnabled(), request.getRoles().stream()
+                        .map(roleId -> roleProvider.role(roleId).orElseThrow(() -> new RoleMissingException(roleId)))
+                        .collect(toList()));
+        userRepository.update(user);
+        return user;
     }
 
     @Override
