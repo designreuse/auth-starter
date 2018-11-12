@@ -49,7 +49,6 @@ import static java.util.Collections.singletonList;
  * Spring Security Config
  */
 @Configuration
-@EnableGlobalMethodSecurity(prePostEnabled = true)
 public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
 
     private final DataSource dataSource;
