@@ -77,6 +77,7 @@ public class AuthConfiguration {
     }
 
     @Bean
+    @ConditionalOnMissingBean
     public Notifier notifier() {
         return new Notifier() {
             @Override
