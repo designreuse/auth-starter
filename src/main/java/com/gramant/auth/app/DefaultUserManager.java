@@ -33,15 +33,12 @@ public class DefaultUserManager implements ManageUser {
     private Notifier notifier;
     private RoleProvider roleProvider;
     private final ApplicationEventPublisher eventPublisher;
-    private final PreProcessRegistrationStep preProcessRegistrationStep;
     private final AuthProperties authProperties;
 
     @Override
     public User add(@NotNull @Valid UserRegistrationRequest userRegistrationRequest) {
-        UserRegistrationRequest userAfterProcessing = preProcessRegistrationStep.process(userRegistrationRequest);
-
         User createdUser = userRepository
-                .add(userAfterProcessing.asUserWithMappedPassword(
+                .add(userRegistrationRequest.asUserWithMappedPassword(
                         password -> encoder.encode(password),
                         roleProvider.defaultRole(),
                         !authProperties.getConfirmEmail()));
@@ -56,8 +53,7 @@ public class DefaultUserManager implements ManageUser {
         } catch (UnsupportedOperationException e) {
         }
 
-
-        eventPublisher.publishEvent(new UserCreatedEvent(createdUser.id(), createdUser.roles(), userAfterProcessing.getAdditionalProperties()));
+        eventPublisher.publishEvent(new UserCreatedEvent(createdUser.id(), createdUser.roles(), userRegistrationRequest.getAdditionalProperties()));
 
         return createdUser;
     }

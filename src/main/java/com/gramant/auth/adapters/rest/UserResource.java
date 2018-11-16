@@ -2,6 +2,7 @@ package com.gramant.auth.adapters.rest;
 
 import com.gramant.auth.app.ManageUser;
 import com.gramant.auth.app.PasswordResetOperations;
+import com.gramant.auth.app.PreProcessRegistrationStep;
 import com.gramant.auth.domain.PasswordResetToken;
 import com.gramant.auth.domain.PasswordResetTokenId;
 import com.gramant.auth.domain.ex.PasswordResetTokenExpiredException;
@@ -22,10 +23,13 @@ public class UserResource {
 
     private final ManageUser userManager;
     private final PasswordResetOperations passwordResetOperations;
+    private final PreProcessRegistrationStep preStep;
 
     @PostMapping
-    public Object createUser(@RequestBody UserRegistrationRequest userRegistrationRequest) {
-        return userManager.add(userRegistrationRequest);
+    public ResponseEntity createUser(@RequestBody UserRegistrationRequest userRegistrationRequest) {
+        UserRegistrationRequest next = preStep.process(userRegistrationRequest);
+        userManager.add(next);
+        return ResponseEntity.ok().build();
     }
 
     @PutMapping("/deactivation")

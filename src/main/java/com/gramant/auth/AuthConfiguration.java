@@ -40,8 +40,8 @@ public class AuthConfiguration {
     }
 
     @Bean
-    public UserResource userResource(ManageUser manageUser, PasswordResetOperations passwordResetOperations) {
-        return new UserResource(manageUser, passwordResetOperations);
+    public UserResource userResource(ManageUser manageUser, PasswordResetOperations passwordResetOperations, PreProcessRegistrationStep step) {
+        return new UserResource(manageUser, passwordResetOperations, step);
     }
 
     @Bean
@@ -106,10 +106,8 @@ public class AuthConfiguration {
 
     @Bean
     public ManageUser manageUser(UserRepository userRepository, Notifier notifier, RoleProvider roleProvider,
-                                 ApplicationEventPublisher eventPublisher,
-                                 PreProcessRegistrationStep preProcessRegistrationStep, AuthProperties authProperties) {
-        return new DefaultUserManager(userRepository, passwordEncoder(), notifier, roleProvider, eventPublisher,
-                preProcessRegistrationStep, authProperties);
+                                 ApplicationEventPublisher eventPublisher, AuthProperties authProperties) {
+        return new DefaultUserManager(userRepository, passwordEncoder(), notifier, roleProvider, eventPublisher, authProperties);
     }
 
     @Bean
