@@ -53,7 +53,8 @@ public class DefaultUserManager implements ManageUser {
         } catch (UnsupportedOperationException e) {
         }
 
-        eventPublisher.publishEvent(new UserCreatedEvent(createdUser.id(), createdUser.roles(), userRegistrationRequest.getAdditionalProperties()));
+        eventPublisher.publishEvent(new UserCreatedEvent(createdUser.id(), createdUser.email(),
+                createdUser.roles(), userRegistrationRequest.getAdditionalProperties()));
 
         return createdUser;
     }
