@@ -14,4 +14,6 @@ public interface Notifier {
     void resetPassword(PasswordResetToken token);
 
     void resetPasswordSuccess(User user);
+
+    void confirmEmail();
 }

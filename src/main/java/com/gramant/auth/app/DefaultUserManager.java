@@ -1,5 +1,6 @@
 package com.gramant.auth.app;
 
+import com.gramant.auth.AuthProperties;
 import com.gramant.auth.domain.User;
 import com.gramant.auth.domain.UserRepository;
 import com.gramant.auth.domain.event.UserCreatedEvent;
@@ -32,17 +33,32 @@ public class DefaultUserManager implements ManageUser {
     private Notifier notifier;
     private RoleProvider roleProvider;
     private final ApplicationEventPublisher eventPublisher;
+    private final PreProcessRegistrationStep preProcessRegistrationStep;
+    private final AuthProperties authProperties;
 
     @Override
     public User add(@NotNull @Valid UserRegistrationRequest userRegistrationRequest) {
-        User createdUser = userRepository
-                .add(userRegistrationRequest.asUserWithMappedPassword(password -> encoder.encode(password), roleProvider.defaultRole()));
-        eventPublisher.publishEvent(new UserCreatedEvent(createdUser.id(), createdUser.roles(), userRegistrationRequest.getAdditionalProperties()));
-        try {
-            notifier.registrationSuccess(createdUser);
-        } catch (UnsupportedOperationException e) {
+        UserRegistrationRequest userAfterProcessing = preProcessRegistrationStep.process(userRegistrationRequest);
 
+        User createdUser = userRepository
+                .add(userAfterProcessing.asUserWithMappedPassword(
+                        password -> encoder.encode(password),
+                        roleProvider.defaultRole(),
+                        !authProperties.getConfirmEmail()));
+
+        try {
+
+            if (authProperties.getConfirmEmail()) {
+                notifier.confirmEmail();
+            } else {
+                notifier.registrationSuccess(createdUser);
+            }
+        } catch (UnsupportedOperationException e) {
         }
+
+
+        eventPublisher.publishEvent(new UserCreatedEvent(createdUser.id(), createdUser.roles(), userAfterProcessing.getAdditionalProperties()));
+
         return createdUser;
     }
 

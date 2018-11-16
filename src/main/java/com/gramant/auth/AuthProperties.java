@@ -12,4 +12,5 @@ public class AuthProperties {
     private Boolean enablePersistentLogins = false;
     private Integer rememberMeTokenValiditySeconds = 86400;
     private String remeberMeKey;
+    private Boolean confirmEmail = false;
 }

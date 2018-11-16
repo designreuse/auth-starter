@@ -7,8 +7,6 @@ import com.gramant.auth.adapters.jdbc.JdbcUserRepository;
 import com.gramant.auth.adapters.rest.ProfileResource;
 import com.gramant.auth.adapters.rest.ExistsValidationResource;
 import com.gramant.auth.adapters.rest.UserResource;
-import com.gramant.auth.adapters.rest.handlers.CreateUserHandler;
-import com.gramant.auth.adapters.rest.representation.UserRepresentation;
 import org.springframework.boot.autoconfigure.AutoConfigureAfter;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
@@ -22,7 +20,6 @@ import org.springframework.context.annotation.Import;
 import org.springframework.context.event.ApplicationEventMulticaster;
 import org.springframework.context.event.SimpleApplicationEventMulticaster;
 import org.springframework.core.task.SimpleAsyncTaskExecutor;
-import org.springframework.http.ResponseEntity;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
@@ -36,15 +33,15 @@ import javax.sql.DataSource;
 @EnableConfigurationProperties(AuthProperties.class)
 @Import(WebSecurityConfig.class)
 public class AuthConfiguration {
+
     @Bean
     public AuthListener authListener() {
         return new AuthListener();
     }
 
     @Bean
-    public UserResource userResource(ManageUser manageUser, PasswordResetOperations passwordResetOperations,
-                                     CreateUserHandler createUserHandler) {
-        return new UserResource(manageUser, passwordResetOperations, createUserHandler);
+    public UserResource userResource(ManageUser manageUser, PasswordResetOperations passwordResetOperations) {
+        return new UserResource(manageUser, passwordResetOperations);
     }
 
     @Bean
@@ -99,12 +96,20 @@ public class AuthConfiguration {
             public void resetPasswordSuccess(User user) {
                 throw new UnsupportedOperationException("not implemented!");
             }
+
+            @Override
+            public void confirmEmail() {
+                throw new UnsupportedOperationException("not implemented!");
+            }
         };
     }
 
     @Bean
-    public ManageUser manageUser(UserRepository userRepository, Notifier notifier, RoleProvider roleProvider, ApplicationEventPublisher eventPublisher) {
-        return new DefaultUserManager(userRepository, passwordEncoder(), notifier, roleProvider, eventPublisher);
+    public ManageUser manageUser(UserRepository userRepository, Notifier notifier, RoleProvider roleProvider,
+                                 ApplicationEventPublisher eventPublisher,
+                                 PreProcessRegistrationStep preProcessRegistrationStep, AuthProperties authProperties) {
+        return new DefaultUserManager(userRepository, passwordEncoder(), notifier, roleProvider, eventPublisher,
+                preProcessRegistrationStep, authProperties);
     }
 
     @Bean
@@ -119,8 +124,8 @@ public class AuthConfiguration {
 
     @Bean
     @ConditionalOnMissingBean
-    public CreateUserHandler createUserHandler(ManageUser userManager) {
-        return registrationRequest -> ResponseEntity.ok(new UserRepresentation(userManager.add(registrationRequest)));
+    public PreProcessRegistrationStep preProcessRegistrationStep() {
+        return (request) -> request;
     }
 
     @Bean
