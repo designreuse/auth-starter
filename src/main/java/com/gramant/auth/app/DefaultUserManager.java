@@ -2,6 +2,7 @@ package com.gramant.auth.app;
 
 import com.gramant.auth.AuthProperties;
 import com.gramant.auth.domain.User;
+import com.gramant.auth.domain.UserId;
 import com.gramant.auth.domain.UserRepository;
 import com.gramant.auth.domain.event.UserCreatedEvent;
 import com.gramant.auth.adapters.rest.request.CommunicationRequest;
@@ -55,9 +56,9 @@ public class DefaultUserManager implements ManageUser {
     }
 
     @Override
-    public User update(@NotNull @Valid UserUpdateRequest request) throws UserMissingException {
-        Optional<User> oldUser = userRepository.get(request.getId());
-        User user = oldUser.orElseThrow(() -> new UserMissingException(request.getId()))
+    public User update(@NotNull UserId id, @NotNull @Valid UserUpdateRequest request) throws UserMissingException {
+        Optional<User> oldUser = userRepository.get(id);
+        User user = oldUser.orElseThrow(() -> new UserMissingException(id))
                 .updatedWith(request.getEmail(), request.getEnabled(), request.getRoles().stream()
                         .map(roleId -> roleProvider.role(roleId).orElseThrow(() -> new RoleMissingException(roleId)))
                         .collect(toList()));

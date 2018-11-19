@@ -5,6 +5,7 @@ import com.gramant.auth.adapters.rest.request.CommunicationRequest;
 import com.gramant.auth.adapters.rest.request.UpdateActivityRequest;
 import com.gramant.auth.adapters.rest.request.UserRegistrationRequest;
 import com.gramant.auth.adapters.rest.request.UserUpdateRequest;
+import com.gramant.auth.domain.UserId;
 import com.gramant.auth.domain.ex.UserMissingException;
 
 import javax.validation.Valid;
@@ -14,7 +15,7 @@ public interface ManageUser {
 
     User add(@NotNull @Valid UserRegistrationRequest userRegistrationRequest);
 
-    User update(@NotNull @Valid UserUpdateRequest userUpdateRequest) throws UserMissingException;
+    User update(@NotNull UserId id, @NotNull @Valid UserUpdateRequest userUpdateRequest) throws UserMissingException;
 
     /**
      *

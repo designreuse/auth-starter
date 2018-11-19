@@ -3,6 +3,7 @@ package com.gramant.auth.adapters.rest;
 import com.gramant.auth.app.ManageUser;
 import com.gramant.auth.app.PreProcessRegistrationStep;
 import com.gramant.auth.app.VerificationTokenOperations;
+import com.gramant.auth.domain.UserId;
 import com.gramant.auth.domain.VerificationToken;
 import com.gramant.auth.domain.VerificationTokenId;
 import com.gramant.auth.domain.ex.VerificationTokenExpiredException;
@@ -52,9 +53,9 @@ public class UserResource {
         return ResponseEntity.ok().build();
     }
 
-    @PostMapping("/update")
-    public ResponseEntity update(@RequestBody @Valid UserUpdateRequest request) throws UserMissingException {
-        userManager.update(request);
+    @PutMapping("/{id}")
+    public ResponseEntity update(@PathVariable UserId id, @RequestBody @Valid UserUpdateRequest request) throws UserMissingException {
+        userManager.update(id, request);
         return ResponseEntity.ok().build();
     }
 
@@ -78,7 +79,7 @@ public class UserResource {
         return ResponseEntity.ok().build();
     }
 
-    @PostMapping("/email-confirmation/{tokenId}")
+    @GetMapping("/email-confirmation/{tokenId}")
     public ResponseEntity confirmEmail(@PathVariable VerificationTokenId tokenId)
             throws VerificationTokenNotFoundException, VerificationTokenExpiredException, UserMissingException {
         verificationTokenOperations.confirmEmail(tokenId);
