@@ -7,10 +7,7 @@ import com.gramant.auth.adapters.jdbc.JdbcUserRepository;
 import com.gramant.auth.adapters.rest.ProfileResource;
 import com.gramant.auth.adapters.rest.ExistsValidationResource;
 import com.gramant.auth.adapters.rest.UserResource;
-import com.gramant.auth.domain.event.EmailConfirmationCompleted;
-import com.gramant.auth.domain.event.EmailConfirmationRequested;
-import com.gramant.auth.domain.event.PasswordResetCompleted;
-import com.gramant.auth.domain.event.PasswordResetRequested;
+import com.gramant.auth.domain.event.*;
 import org.springframework.boot.autoconfigure.AutoConfigureAfter;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
@@ -185,7 +182,7 @@ public class AuthConfiguration {
 
         @EventListener
         @Async
-        public void proccessEmailConfirmationCompletedEvent(EmailConfirmationCompleted event) {
+        public void processEmailConfirmationCompletedEvent(EmailConfirmationCompleted event) {
             notifier.confirmEmailSuccess(event.user());
         }
     }

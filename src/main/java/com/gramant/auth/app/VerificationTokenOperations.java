@@ -30,7 +30,7 @@ public interface VerificationTokenOperations {
 
     void updatePassword(@NotNull @Valid PasswordUpdateRequest passwordUpdateRequest) throws VerificationTokenExpiredException, VerificationTokenNotFoundException, UserMissingException;
 
-    void requestEmailConfirmation(@NotNull String email) throws UserMissingException;
+    void requestEmailConfirmation(@NotNull User user);
 
     void confirmEmail(VerificationTokenId id) throws VerificationTokenExpiredException, VerificationTokenNotFoundException, UserMissingException;
 
@@ -75,12 +75,11 @@ public interface VerificationTokenOperations {
         }
 
         @Override
-        public void requestEmailConfirmation(@NotNull String email) throws UserMissingException {
-            User user = userRepository.findByEmail(email).orElseThrow(() -> new UserMissingException(email));
+        public void requestEmailConfirmation(@NotNull User user) {
             VerificationToken token = new VerificationToken(user, VerificationTokenType.EMAIL);
             verificationTokenRepository.add(token);
 
-            eventPublisher.publishEvent(new EmailConfirmationRequested(email, token));
+            eventPublisher.publishEvent(new EmailConfirmationRequested(user.email(), token));
         }
 
         @Override

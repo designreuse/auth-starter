@@ -44,16 +44,8 @@ public class DefaultUserManager implements ManageUser {
                         roleProvider.defaultRole(),
                         !authProperties.getConfirmEmail()));
 
-        try {
-            if (authProperties.getConfirmEmail()) {
-                verificationTokenOperations.requestEmailConfirmation(createdUser.email());
-            } else {
-                notifier.registrationSuccess(createdUser);
-            }
-        } catch (UnsupportedOperationException e) {
-
-        } catch (UserMissingException e) {
-            // только что внесенный пользователь не найден?
+        if (authProperties.getConfirmEmail()) {
+            verificationTokenOperations.requestEmailConfirmation(createdUser);
         }
 
         eventPublisher.publishEvent(new UserCreatedEvent(createdUser.id(), createdUser.roles(),
