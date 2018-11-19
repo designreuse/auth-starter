@@ -49,13 +49,13 @@ public class JdbcVerificationTokenRepository implements VerificationTokenReposit
     @Getter
     @Setter
     private static class VerificationTokenData {
-        private String token;
+        private VerificationTokenId token;
         private String userId;
         private LocalDateTime expiryDate;
         private String tokenType;
 
         VerificationToken asVerificationToken() {
-            return new VerificationToken(VerificationTokenType.valueOf(tokenType), VerificationTokenId.of(token), User.builder().id(UserId.of(userId)).build(), expiryDate);
+            return new VerificationToken(VerificationTokenType.valueOf(tokenType), token, User.builder().id(UserId.of(userId)).build(), expiryDate);
         }
     }
 }

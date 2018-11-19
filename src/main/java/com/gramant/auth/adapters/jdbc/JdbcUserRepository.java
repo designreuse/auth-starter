@@ -51,7 +51,7 @@ public class JdbcUserRepository implements UserRepository {
                 new Object[] {userId.asString()},
                 USER_DATA_ROW_MAPPER);
 
-        return users.isEmpty() ? Optional.empty() : Optional.of(users.get(0).asUser(getRoles(userId.asString())));
+        return users.isEmpty() ? Optional.empty() : Optional.of(users.get(0).asUser(getRoles(userId)));
     }
 
     @Override
@@ -114,22 +114,22 @@ public class JdbcUserRepository implements UserRepository {
         jdbcTemplate.batchUpdate("insert into authorities (user_id, role_id) values (?, ?)", new AuthoritiesBatchPsSetter(user));
     }
 
-    private List<PrivilegedRole> getRoles(String userId) {
+    private List<PrivilegedRole> getRoles(UserId userId) {
         List<RoleId> roleIds = jdbcTemplate.query("select role_id from authorities where user_id = ?",
-                new Object[]{userId}, ROLE_ID_ROW_MAPPER);
+                new Object[]{userId.asString()}, ROLE_ID_ROW_MAPPER);
         return roleIds.stream().map(roleProvider::role).map(o -> o.orElse(PrivilegedRole.unknown())).collect(toList());
     }
 
     @Getter
     @Setter
     static class UserData {
-        private String id;
+        private UserId id;
         private String email;
         private String password;
         private boolean enabled;
 
         User asUser(List<PrivilegedRole> roles) {
-            return new User(UserId.of(id), email, password, enabled, roles, null);
+            return new User(id, email, password, enabled, roles, null);
         }
     }
 
