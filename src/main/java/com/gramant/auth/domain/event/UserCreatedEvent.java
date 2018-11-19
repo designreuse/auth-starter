@@ -14,7 +14,6 @@ import java.util.Map;
 @AllArgsConstructor
 public class UserCreatedEvent {
     private final UserId id;
-    private final String email;
     private final List<PrivilegedRole> roles;
     private final Map<String, String> additionalProperties;
 }

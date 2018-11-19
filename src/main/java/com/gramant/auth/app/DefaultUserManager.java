@@ -56,8 +56,8 @@ public class DefaultUserManager implements ManageUser {
             // только что внесенный пользователь не найден?
         }
 
-        eventPublisher.publishEvent(new UserCreatedEvent(createdUser.id(), createdUser.email(),
-                createdUser.roles(), userRegistrationRequest.getAdditionalProperties()));
+        eventPublisher.publishEvent(new UserCreatedEvent(createdUser.id(), createdUser.roles(),
+                userRegistrationRequest.getAdditionalProperties()));
 
         return createdUser;
     }
