@@ -34,6 +34,7 @@ public class DefaultUserManager implements ManageUser {
     private RoleProvider roleProvider;
     private final ApplicationEventPublisher eventPublisher;
     private final AuthProperties authProperties;
+    private final VerificationTokenOperations verificationTokenOperations;
 
     @Override
     public User add(@NotNull @Valid UserRegistrationRequest userRegistrationRequest) {
@@ -44,13 +45,15 @@ public class DefaultUserManager implements ManageUser {
                         !authProperties.getConfirmEmail()));
 
         try {
-
             if (authProperties.getConfirmEmail()) {
-                notifier.confirmEmail();
+                verificationTokenOperations.requestEmailConfirmation(createdUser.email());
             } else {
                 notifier.registrationSuccess(createdUser);
             }
         } catch (UnsupportedOperationException e) {
+
+        } catch (UserMissingException e) {
+            // только что внесенный пользователь не найден?
         }
 
         eventPublisher.publishEvent(new UserCreatedEvent(createdUser.id(), createdUser.email(),

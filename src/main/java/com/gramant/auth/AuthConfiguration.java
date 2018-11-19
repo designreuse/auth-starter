@@ -2,7 +2,7 @@ package com.gramant.auth;
 
 import com.gramant.auth.app.*;
 import com.gramant.auth.domain.*;
-import com.gramant.auth.adapters.jdbc.JdbcPasswordTokenRepository;
+import com.gramant.auth.adapters.jdbc.JdbcVerificationTokenRepository;
 import com.gramant.auth.adapters.jdbc.JdbcUserRepository;
 import com.gramant.auth.adapters.rest.ProfileResource;
 import com.gramant.auth.adapters.rest.ExistsValidationResource;
@@ -40,8 +40,8 @@ public class AuthConfiguration {
     }
 
     @Bean
-    public UserResource userResource(ManageUser manageUser, PasswordResetOperations passwordResetOperations, PreProcessRegistrationStep step) {
-        return new UserResource(manageUser, passwordResetOperations, step);
+    public UserResource userResource(ManageUser manageUser, VerificationTokenOperations verificationTokenOperations, PreProcessRegistrationStep step) {
+        return new UserResource(manageUser, verificationTokenOperations, step);
     }
 
     @Bean
@@ -55,17 +55,17 @@ public class AuthConfiguration {
     }
 
     @Bean
-    public PasswordResetOperations passwordResetOperations(
-            PasswordTokenRepository passwordTokenRepository,
+    public VerificationTokenOperations verificationTokenOperations(
+            VerificationTokenRepository verificationTokenRepository,
             UserRepository userRepository,
             Notifier notifier,
             PasswordEncoder passwordEncoder) {
-        return new PasswordResetOperations.Default(passwordTokenRepository, userRepository, notifier, passwordEncoder);
+        return new VerificationTokenOperations.Default(verificationTokenRepository, userRepository, notifier, passwordEncoder);
     }
 
     @Bean
-    public PasswordTokenRepository passwordTokenRepository(JdbcTemplate jdbcTemplate) {
-        return new JdbcPasswordTokenRepository(jdbcTemplate);
+    public VerificationTokenRepository passwordTokenRepository(JdbcTemplate jdbcTemplate) {
+        return new JdbcVerificationTokenRepository(jdbcTemplate);
     }
 
     @Bean
@@ -88,7 +88,7 @@ public class AuthConfiguration {
             }
 
             @Override
-            public void resetPassword(PasswordResetToken token) {
+            public void resetPassword(VerificationToken token) {
                 throw new UnsupportedOperationException("not implemented!");
             }
 
@@ -98,7 +98,12 @@ public class AuthConfiguration {
             }
 
             @Override
-            public void confirmEmail() {
+            public void confirmEmail(VerificationToken token) {
+                throw new UnsupportedOperationException("not implemented!");
+            }
+
+            @Override
+            public void confirmEmailSuccess(User user) {
                 throw new UnsupportedOperationException("not implemented!");
             }
         };
@@ -106,8 +111,10 @@ public class AuthConfiguration {
 
     @Bean
     public ManageUser manageUser(UserRepository userRepository, Notifier notifier, RoleProvider roleProvider,
-                                 ApplicationEventPublisher eventPublisher, AuthProperties authProperties) {
-        return new DefaultUserManager(userRepository, passwordEncoder(), notifier, roleProvider, eventPublisher, authProperties);
+                                 ApplicationEventPublisher eventPublisher, AuthProperties authProperties,
+                                 VerificationTokenOperations verificationTokenOperations) {
+        return new DefaultUserManager(userRepository, passwordEncoder(), notifier, roleProvider, eventPublisher,
+                authProperties, verificationTokenOperations);
     }
 
     @Bean

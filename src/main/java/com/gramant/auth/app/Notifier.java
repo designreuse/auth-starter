@@ -1,8 +1,8 @@
 package com.gramant.auth.app;
 
 
-import com.gramant.auth.domain.PasswordResetToken;
 import com.gramant.auth.domain.User;
+import com.gramant.auth.domain.VerificationToken;
 
 // todo: [#notify] move to separate module?
 public interface Notifier {
@@ -11,9 +11,11 @@ public interface Notifier {
 
     void communicate(User user, String message);
 
-    void resetPassword(PasswordResetToken token);
+    void resetPassword(VerificationToken token);
 
     void resetPasswordSuccess(User user);
 
-    void confirmEmail();
+    void confirmEmail(VerificationToken token);
+
+    void confirmEmailSuccess(User user);
 }

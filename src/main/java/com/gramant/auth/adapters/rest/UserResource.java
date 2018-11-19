@@ -1,12 +1,12 @@
 package com.gramant.auth.adapters.rest;
 
 import com.gramant.auth.app.ManageUser;
-import com.gramant.auth.app.PasswordResetOperations;
 import com.gramant.auth.app.PreProcessRegistrationStep;
-import com.gramant.auth.domain.PasswordResetToken;
-import com.gramant.auth.domain.PasswordResetTokenId;
-import com.gramant.auth.domain.ex.PasswordResetTokenExpiredException;
-import com.gramant.auth.domain.ex.PasswordResetTokenNotFoundException;
+import com.gramant.auth.app.VerificationTokenOperations;
+import com.gramant.auth.domain.VerificationToken;
+import com.gramant.auth.domain.VerificationTokenId;
+import com.gramant.auth.domain.ex.VerificationTokenExpiredException;
+import com.gramant.auth.domain.ex.VerificationTokenNotFoundException;
 import com.gramant.auth.domain.ex.UserMissingException;
 import com.gramant.auth.adapters.rest.request.*;
 import lombok.AllArgsConstructor;
@@ -22,7 +22,7 @@ import javax.validation.Valid;
 public class UserResource {
 
     private final ManageUser userManager;
-    private final PasswordResetOperations passwordResetOperations;
+    private final VerificationTokenOperations verificationTokenOperations;
     private final PreProcessRegistrationStep preStep;
 
     @PostMapping
@@ -60,21 +60,28 @@ public class UserResource {
 
     @PostMapping("/password-reset-token")
     public ResponseEntity createPasswordResetToken(@RequestBody PasswordResetRequest passwordResetRequest) throws UserMissingException {
-        passwordResetOperations.requestPasswordChange(passwordResetRequest);
+        verificationTokenOperations.requestPasswordChange(passwordResetRequest);
         return ResponseEntity.ok().build();
     }
 
     @GetMapping("/password-reset-token/{tokenId}")
-    public ResponseEntity confirmResetPassword(@PathVariable PasswordResetTokenId tokenId)
-            throws PasswordResetTokenNotFoundException, PasswordResetTokenExpiredException {
-        PasswordResetToken token = passwordResetOperations.confirmPasswordChange(tokenId);
+    public ResponseEntity confirmResetPassword(@PathVariable VerificationTokenId tokenId)
+            throws VerificationTokenNotFoundException, VerificationTokenExpiredException {
+        VerificationToken token = verificationTokenOperations.confirmPasswordChange(tokenId);
         return ResponseEntity.ok().body(token.user().id().asString());
     }
 
     @PutMapping("/password")
     public ResponseEntity updatePassword(@RequestBody PasswordUpdateRequest passwordUpdateRequest)
-            throws PasswordResetTokenExpiredException, PasswordResetTokenNotFoundException, UserMissingException {
-        passwordResetOperations.updatePassword(passwordUpdateRequest);
+            throws VerificationTokenExpiredException, VerificationTokenNotFoundException, UserMissingException {
+        verificationTokenOperations.updatePassword(passwordUpdateRequest);
+        return ResponseEntity.ok().build();
+    }
+
+    @PostMapping("/email-confirmation/{tokenId}")
+    public ResponseEntity confirmEmail(@PathVariable VerificationTokenId tokenId)
+            throws VerificationTokenNotFoundException, VerificationTokenExpiredException, UserMissingException {
+        verificationTokenOperations.confirmEmail(tokenId);
         return ResponseEntity.ok().build();
     }
 }

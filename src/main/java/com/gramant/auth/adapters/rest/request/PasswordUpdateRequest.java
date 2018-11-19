@@ -2,7 +2,7 @@ package com.gramant.auth.adapters.rest.request;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.gramant.auth.domain.PasswordResetTokenId;
+import com.gramant.auth.domain.VerificationTokenId;
 import lombok.Getter;
 
 import javax.validation.constraints.AssertTrue;
@@ -22,12 +22,12 @@ public class PasswordUpdateRequest {
     private String confirmPassword;
 
     @NotNull
-    private PasswordResetTokenId tokenId;
+    private VerificationTokenId tokenId;
 
     @JsonCreator
     public PasswordUpdateRequest(@JsonProperty("password") String password,
                                  @JsonProperty("confirmPassword") String confirmPassword,
-                                 @JsonProperty("token") PasswordResetTokenId tokenId) {
+                                 @JsonProperty("token") VerificationTokenId tokenId) {
         this.password = password;
         this.confirmPassword = confirmPassword;
         this.tokenId = tokenId;
