@@ -8,6 +8,6 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 public class VerificationTokenNotFoundException extends Exception {
 
     public VerificationTokenNotFoundException(VerificationTokenId id) {
-        super("Cannot find password reset token " + id);
+        super("Cannot find verification token " + id);
     }
 }
