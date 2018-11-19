@@ -3,10 +3,15 @@ package com.gramant.auth.app;
 import com.gramant.auth.adapters.rest.request.PasswordResetRequest;
 import com.gramant.auth.adapters.rest.request.PasswordUpdateRequest;
 import com.gramant.auth.domain.*;
+import com.gramant.auth.domain.event.EmailConfirmationCompleted;
+import com.gramant.auth.domain.event.EmailConfirmationRequested;
+import com.gramant.auth.domain.event.PasswordResetCompleted;
+import com.gramant.auth.domain.event.PasswordResetRequested;
 import com.gramant.auth.domain.ex.UserMissingException;
 import com.gramant.auth.domain.ex.VerificationTokenExpiredException;
 import com.gramant.auth.domain.ex.VerificationTokenNotFoundException;
 import lombok.AllArgsConstructor;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.validation.annotation.Validated;
 
@@ -36,8 +41,8 @@ public interface VerificationTokenOperations {
 
         private VerificationTokenRepository verificationTokenRepository;
         private UserRepository userRepository;
-        private Notifier notifier;
         private PasswordEncoder encoder;
+        private ApplicationEventPublisher eventPublisher;
 
         @Override
         public void requestPasswordChange(@NotNull @Valid PasswordResetRequest passwordResetRequest) throws UserMissingException {
@@ -45,7 +50,8 @@ public interface VerificationTokenOperations {
                     .orElseThrow(() -> new UserMissingException(passwordResetRequest.getEmail()));
             VerificationToken verificationToken = new VerificationToken(user, VerificationTokenType.PASSWORD);
             verificationTokenRepository.add(verificationToken);
-            notifier.resetPassword(verificationToken);
+
+            eventPublisher.publishEvent(new PasswordResetRequested(passwordResetRequest.getEmail(), verificationToken));
         }
 
         @Override
@@ -64,7 +70,8 @@ public interface VerificationTokenOperations {
             User user = userRepository.get(token.user().id()).orElseThrow(() -> new UserMissingException(token.user().id()));
             userRepository.update(user.withPassword(encoder.encode(passwordUpdateRequest.getPassword())));
             verificationTokenRepository.remove(token.tokenId());
-            notifier.resetPasswordSuccess(user);
+
+            eventPublisher.publishEvent(new PasswordResetCompleted(user));
         }
 
         @Override
@@ -72,7 +79,8 @@ public interface VerificationTokenOperations {
             User user = userRepository.findByEmail(email).orElseThrow(() -> new UserMissingException(email));
             VerificationToken token = new VerificationToken(user, VerificationTokenType.EMAIL);
             verificationTokenRepository.add(token);
-            notifier.confirmEmail(token);
+
+            eventPublisher.publishEvent(new EmailConfirmationRequested(email, token));
         }
 
         @Override
@@ -81,7 +89,8 @@ public interface VerificationTokenOperations {
             User user = userRepository.get(token.user().id()).orElseThrow(() -> new UserMissingException(token.user().id()));
             userRepository.update(user.asActivated());
             verificationTokenRepository.remove(id);
-            notifier.confirmEmailSuccess(user);
+
+            eventPublisher.publishEvent(new EmailConfirmationCompleted(user));
         }
     }
 }

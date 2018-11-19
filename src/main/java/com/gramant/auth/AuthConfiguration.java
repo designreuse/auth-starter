@@ -7,6 +7,10 @@ import com.gramant.auth.adapters.jdbc.JdbcUserRepository;
 import com.gramant.auth.adapters.rest.ProfileResource;
 import com.gramant.auth.adapters.rest.ExistsValidationResource;
 import com.gramant.auth.adapters.rest.UserResource;
+import com.gramant.auth.domain.event.EmailConfirmationCompleted;
+import com.gramant.auth.domain.event.EmailConfirmationRequested;
+import com.gramant.auth.domain.event.PasswordResetCompleted;
+import com.gramant.auth.domain.event.PasswordResetRequested;
 import org.springframework.boot.autoconfigure.AutoConfigureAfter;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
@@ -18,10 +22,12 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
 import org.springframework.context.event.ApplicationEventMulticaster;
+import org.springframework.context.event.EventListener;
 import org.springframework.context.event.SimpleApplicationEventMulticaster;
 import org.springframework.core.task.SimpleAsyncTaskExecutor;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
@@ -58,9 +64,9 @@ public class AuthConfiguration {
     public VerificationTokenOperations verificationTokenOperations(
             VerificationTokenRepository verificationTokenRepository,
             UserRepository userRepository,
-            Notifier notifier,
-            PasswordEncoder passwordEncoder) {
-        return new VerificationTokenOperations.Default(verificationTokenRepository, userRepository, notifier, passwordEncoder);
+            PasswordEncoder passwordEncoder,
+            ApplicationEventPublisher eventPublisher) {
+        return new VerificationTokenOperations.Default(verificationTokenRepository, userRepository, passwordEncoder, eventPublisher);
     }
 
     @Bean
@@ -144,5 +150,43 @@ public class AuthConfiguration {
         SimpleApplicationEventMulticaster eventMulticaster = new SimpleApplicationEventMulticaster();
         eventMulticaster.setTaskExecutor(new SimpleAsyncTaskExecutor());
         return eventMulticaster;
+    }
+
+    @Bean
+    public NotificationEventListener notificationEventListener(Notifier notifier) {
+        return new NotificationEventListener(notifier);
+    }
+
+    static class NotificationEventListener {
+
+        private final Notifier notifier;
+
+        NotificationEventListener(Notifier notifier) {
+            this.notifier = notifier;
+        }
+
+        @EventListener
+        @Async
+        public void processPasswordResetRequestedEvent(PasswordResetRequested event) {
+            notifier.resetPassword(event.verificationToken());
+        }
+
+        @EventListener
+        @Async
+        public void processPasswordResetCompletedEvent(PasswordResetCompleted event) {
+            notifier.resetPasswordSuccess(event.user());
+        }
+
+        @EventListener
+        @Async
+        public void processEmailConfirmationRequestedEvent(EmailConfirmationRequested event) {
+            notifier.confirmEmail(event.token());
+        }
+
+        @EventListener
+        @Async
+        public void proccessEmailConfirmationCompletedEvent(EmailConfirmationCompleted event) {
+            notifier.confirmEmailSuccess(event.user());
+        }
     }
 }
