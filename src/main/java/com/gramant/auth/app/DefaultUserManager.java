@@ -8,6 +8,7 @@ import com.gramant.auth.adapters.rest.request.CommunicationRequest;
 import com.gramant.auth.adapters.rest.request.UpdateActivityRequest;
 import com.gramant.auth.adapters.rest.request.UserRegistrationRequest;
 import com.gramant.auth.adapters.rest.request.UserUpdateRequest;
+import com.gramant.auth.domain.event.UsersMessaged;
 import com.gramant.auth.domain.ex.UserMissingException;
 import lombok.AllArgsConstructor;
 import org.springframework.context.ApplicationEventPublisher;
@@ -28,7 +29,6 @@ public class DefaultUserManager implements ManageUser {
 
     private final UserRepository userRepository;
     private final PasswordEncoder encoder;
-    private final Notifier notifier;  // todo: заменить публикацией события
     private final RoleProvider roleProvider;
     private final ApplicationEventPublisher eventPublisher;
     private final AuthProperties authProperties;
@@ -78,7 +78,7 @@ public class DefaultUserManager implements ManageUser {
     public void communicate(@NotNull @Valid CommunicationRequest request) {
         Collection<User> users = userRepository.getAll(request.userIds());
 
-        users.forEach(u -> notifier.communicate(u, request.message()));
+        eventPublisher.publishEvent(new UsersMessaged(users, request.message()));
     }
 
     @Override

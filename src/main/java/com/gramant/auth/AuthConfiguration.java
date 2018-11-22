@@ -125,7 +125,7 @@ public class AuthConfiguration {
     public ManageUser manageUser(UserRepository userRepository, Notifier notifier, RoleProvider roleProvider,
                                  ApplicationEventPublisher eventPublisher, AuthProperties authProperties,
                                  VerificationTokenOperations verificationTokenOperations, UserInvariants userInvariants) {
-        return new DefaultUserManager(userRepository, passwordEncoder(), notifier, roleProvider, eventPublisher,
+        return new DefaultUserManager(userRepository, passwordEncoder(), roleProvider, eventPublisher,
                 authProperties, verificationTokenOperations, userInvariants, passwordGenerator());
     }
 
@@ -204,6 +204,12 @@ public class AuthConfiguration {
         @Async
         public void processPasswordResetCompletedEvent(PasswordResetCompleted event) {
             notifier.resetPasswordSuccess(event.user(), event.newPassword());
+        }
+
+        @EventListener
+        @Async
+        public void processUsersMessagedEvent(UsersMessaged event) {
+            event.users().forEach(u -> notifier.communicate(u, event.message()));
         }
     }
 }
