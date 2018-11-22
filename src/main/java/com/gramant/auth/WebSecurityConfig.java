@@ -166,7 +166,6 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
         SwitchUserFilter filter = new SwitchUserFilter();
         filter.setUserDetailsService(userDetailsService());
         filter.setSwitchUserUrl("/impersonate");
-        filter.setTargetUrl("/");
         filter.setSuccessHandler(successLoginHandler());
         filter.setExitUserUrl("/undo-impersonate");
         return filter;
