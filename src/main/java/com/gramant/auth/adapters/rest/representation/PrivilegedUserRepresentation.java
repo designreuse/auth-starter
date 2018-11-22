@@ -17,6 +17,7 @@ public class PrivilegedUserRepresentation {
     private Object additionalData;
     private Boolean impersonate;
 
+    // fixme: убрать все знание о org.springframework.security
     public PrivilegedUserRepresentation(Authentication authentication) {
         AuthenticatedUserDetails principal = (AuthenticatedUserDetails) authentication.getPrincipal();
         User user = principal.getUser();
