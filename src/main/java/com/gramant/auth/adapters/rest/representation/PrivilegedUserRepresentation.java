@@ -1,13 +1,11 @@
 package com.gramant.auth.adapters.rest.representation;
 
-import com.gramant.auth.domain.AuthenticatedUserDetails;
-import com.gramant.auth.domain.User;
+import com.gramant.auth.domain.*;
 import lombok.Getter;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.GrantedAuthority;
 
 import java.util.List;
-import java.util.stream.Collectors;
+
+import static java.util.stream.Collectors.toList;
 
 @Getter
 public class PrivilegedUserRepresentation {
@@ -17,15 +15,12 @@ public class PrivilegedUserRepresentation {
     private Object additionalData;
     private Boolean impersonate;
 
-    // fixme: убрать все знание о org.springframework.security
-    public PrivilegedUserRepresentation(Authentication authentication) {
-        AuthenticatedUserDetails principal = (AuthenticatedUserDetails) authentication.getPrincipal();
-        User user = principal.getUser();
-
+    public PrivilegedUserRepresentation(MetaUser metaUser) {
+        User user = metaUser.getUser();
         this.id = user.id().asString();
         this.email = user.email();
-        this.privileges = principal.getAuthorities().stream().map(GrantedAuthority::getAuthority).collect(Collectors.toList());
-        this.additionalData = principal.getAdditionalData();
-        this.impersonate = authentication.getAuthorities().stream().anyMatch(a -> a.getAuthority().equals("ROLE_PREVIOUS_ADMINISTRATOR"));
+        this.privileges = user.roles().stream().map(PrivilegedRole::id).map(RoleId::asString).collect(toList());
+        this.additionalData = metaUser.getUserDetails().getAdditionalData();
+        this.impersonate = metaUser.isImpersonated();
     }
 }

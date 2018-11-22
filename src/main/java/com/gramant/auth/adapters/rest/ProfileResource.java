@@ -1,6 +1,8 @@
 package com.gramant.auth.adapters.rest;
 
 import com.gramant.auth.adapters.rest.representation.PrivilegedUserRepresentation;
+import com.gramant.auth.app.AuthenticationOperations;
+import com.gramant.auth.domain.MetaUser;
 import lombok.AllArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
@@ -13,10 +15,13 @@ import java.util.Optional;
 @AllArgsConstructor
 public class ProfileResource {
 
+    private final AuthenticationOperations authenticationOperations;
+
     @GetMapping
     public ResponseEntity<PrivilegedUserRepresentation> userDetails(Authentication authentication) {
-        return Optional.ofNullable(authentication)
-                .map(user -> ResponseEntity.ok(new PrivilegedUserRepresentation(authentication)))
+        Optional<MetaUser> authenticated = authenticationOperations.confirmAuthentication(authentication);
+        return authenticated
+                .map(a -> ResponseEntity.ok(new PrivilegedUserRepresentation(a)))
                 .orElseGet(() -> ResponseEntity.noContent().build());
     }
 }
