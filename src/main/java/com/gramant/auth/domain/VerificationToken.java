@@ -16,6 +16,7 @@ public class VerificationToken {
 
     private final VerificationTokenType type;
     private final VerificationTokenId tokenId;
+    // todo: судя по всему требуется только UserId - заменить User на UserId
     private final User user;
     private final LocalDateTime expiryDate;
 
