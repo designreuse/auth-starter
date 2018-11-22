@@ -22,6 +22,7 @@ import org.springframework.security.config.annotation.method.configuration.Enabl
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.builders.WebSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
+import org.springframework.security.core.Authentication;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -39,8 +40,12 @@ import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
+import javax.servlet.ServletException;
 import javax.servlet.http.Cookie;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 import javax.sql.DataSource;
+import java.io.IOException;
 import java.util.Arrays;
 
 import static java.util.Collections.singletonList;
@@ -162,6 +167,8 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
         filter.setUserDetailsService(userDetailsService());
         filter.setSwitchUserUrl("/impersonate");
         filter.setTargetUrl("/");
+        filter.setSuccessHandler(successLoginHandler());
+        filter.setExitUserUrl("/undo-impersonate");
         return filter;
     }
 
