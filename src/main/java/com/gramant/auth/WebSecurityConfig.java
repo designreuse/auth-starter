@@ -73,7 +73,6 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
                 "/auth/users",
                 "/auth/check"
         ).permitAll();
-        http.authorizeRequests().antMatchers("/api/**").authenticated();
         http.logout()
                 .permitAll().logoutRequestMatcher(new AntPathRequestMatcher("/auth/logout"))
                 .invalidateHttpSession(true)
@@ -102,6 +101,8 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
                     .rememberMeServices(persistentTokenBasedRememberMeServices());
         }
 
+        http.authorizeRequests()
+                .antMatchers("/impersonate").access("hasAuthority('EDIT_USERS')");
         http.addFilterAfter(switchUserFilter(), FilterSecurityInterceptor.class);
     }
 
@@ -159,6 +160,7 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
     public SwitchUserFilter switchUserFilter() {
         SwitchUserFilter filter = new SwitchUserFilter();
         filter.setUserDetailsService(userDetailsService());
+        filter.setSwitchUserUrl("/impersonate");
         filter.setTargetUrl("/");
         return filter;
     }
