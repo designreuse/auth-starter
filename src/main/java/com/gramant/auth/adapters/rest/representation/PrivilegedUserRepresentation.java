@@ -15,6 +15,7 @@ public class PrivilegedUserRepresentation {
     private String email;
     private List<String> privileges;
     private Object additionalData;
+    private Boolean impersonate;
 
     public PrivilegedUserRepresentation(Authentication authentication) {
         AuthenticatedUserDetails principal = (AuthenticatedUserDetails) authentication.getPrincipal();
@@ -22,7 +23,8 @@ public class PrivilegedUserRepresentation {
 
         this.id = user.id().asString();
         this.email = user.email();
-        this.privileges = authentication.getAuthorities().stream().map(GrantedAuthority::getAuthority).collect(Collectors.toList());
+        this.privileges = principal.getAuthorities().stream().map(GrantedAuthority::getAuthority).collect(Collectors.toList());
         this.additionalData = principal.getAdditionalData();
+        this.impersonate = authentication.getAuthorities().stream().anyMatch(a -> a.getAuthority().equals("ROLE_PREVIOUS_ADMINISTRATOR"));
     }
 }
