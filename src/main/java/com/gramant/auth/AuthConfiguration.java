@@ -76,6 +76,10 @@ public class AuthConfiguration {
         return new JdbcUserRepository(jdbcTemplate, namedParameterJdbcTemplate, roleProvider);
     }
 
+    @Bean UserInvariants userInvariants(UserRepository userRepository) {
+        return new UserInvariants.Default(userRepository);
+    }
+
     @Bean
     @ConditionalOnMissingBean
     public Notifier notifier() {
@@ -120,9 +124,9 @@ public class AuthConfiguration {
     @Bean
     public ManageUser manageUser(UserRepository userRepository, Notifier notifier, RoleProvider roleProvider,
                                  ApplicationEventPublisher eventPublisher, AuthProperties authProperties,
-                                 VerificationTokenOperations verificationTokenOperations, QueryUser queryUser) {
+                                 VerificationTokenOperations verificationTokenOperations, UserInvariants userInvariants) {
         return new DefaultUserManager(userRepository, passwordEncoder(), notifier, roleProvider, eventPublisher,
-                authProperties, verificationTokenOperations, queryUser, passwordGenerator());
+                authProperties, verificationTokenOperations, userInvariants, passwordGenerator());
     }
 
     @Bean
@@ -131,8 +135,8 @@ public class AuthConfiguration {
     }
 
     @Bean
-    public QueryUser queryUser(UserRepository userRepository) {
-        return new QueryUser.Default(userRepository);
+    public QueryUser queryUser(UserRepository userRepository, UserInvariants userInvariants) {
+        return new QueryUser.Default(userRepository, userInvariants);
     }
 
     @Bean

@@ -2,12 +2,14 @@ package com.gramant.auth.app;
 
 import com.gramant.auth.domain.User;
 import com.gramant.auth.domain.UserId;
+import com.gramant.auth.domain.UserInvariants;
 import com.gramant.auth.domain.UserRepository;
 import com.gramant.auth.domain.ex.UserMissingException;
 import lombok.AllArgsConstructor;
 
 import javax.validation.constraints.NotNull;
 import java.util.Collection;
+import java.util.Optional;
 
 public interface QueryUser {
 
@@ -25,6 +27,7 @@ public interface QueryUser {
     class Default implements QueryUser {
 
         private final UserRepository userRepository;
+        private final UserInvariants userInvariants;
 
         @Override
         public User findEnabledByEmail(@NotNull String email) throws UserMissingException {
@@ -33,7 +36,9 @@ public interface QueryUser {
 
         @Override
         public User findEnabledById(@NotNull UserId userId) throws UserMissingException {
-            return userRepository.get(userId).orElseThrow(() -> new UserMissingException(userId));
+            return userRepository.get(userId)
+                    .flatMap(user -> user.enabled() ? Optional.of(user) : Optional.empty())
+                    .orElseThrow(() -> new UserMissingException(userId));
         }
 
         @Override
@@ -43,7 +48,7 @@ public interface QueryUser {
 
         @Override
         public User get(@NotNull UserId userId) throws UserMissingException {
-            return userRepository.get(userId).orElseThrow(() -> new UserMissingException(userId));
+            return userInvariants.ensuredExistence(userId);
         }
     }
 }

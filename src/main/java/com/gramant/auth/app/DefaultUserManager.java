@@ -1,17 +1,13 @@
 package com.gramant.auth.app;
 
 import com.gramant.auth.AuthProperties;
-import com.gramant.auth.domain.PasswordGenerator;
-import com.gramant.auth.domain.User;
-import com.gramant.auth.domain.UserId;
-import com.gramant.auth.domain.UserRepository;
+import com.gramant.auth.domain.*;
 import com.gramant.auth.domain.event.PasswordResetCompleted;
 import com.gramant.auth.domain.event.UserCreatedEvent;
 import com.gramant.auth.adapters.rest.request.CommunicationRequest;
 import com.gramant.auth.adapters.rest.request.UpdateActivityRequest;
 import com.gramant.auth.adapters.rest.request.UserRegistrationRequest;
 import com.gramant.auth.adapters.rest.request.UserUpdateRequest;
-import com.gramant.auth.domain.ex.RoleMissingException;
 import com.gramant.auth.domain.ex.UserMissingException;
 import lombok.AllArgsConstructor;
 import org.springframework.context.ApplicationEventPublisher;
@@ -23,8 +19,6 @@ import javax.validation.Valid;
 import javax.validation.constraints.NotNull;
 
 import java.util.Collection;
-import java.util.Optional;
-import java.util.UUID;
 
 import static java.util.stream.Collectors.toList;
 
@@ -39,7 +33,7 @@ public class DefaultUserManager implements ManageUser {
     private final ApplicationEventPublisher eventPublisher;
     private final AuthProperties authProperties;
     private final VerificationTokenOperations verificationTokenOperations;
-    private final QueryUser queryUser;  // fixme: убрать, т.к. является сервисом того же уровня; использовать репозиторий
+    private final UserInvariants userInvariants;
     private final PasswordGenerator passwordGenerator;
 
     @Override
@@ -61,11 +55,9 @@ public class DefaultUserManager implements ManageUser {
     }
 
     @Override
-    public User update(@NotNull UserId id, @NotNull @Valid UserUpdateRequest request) throws UserMissingException {
-        User user = queryUser.get(id)
-                .updatedWith(request.getEmail(), request.getEnabled(), request.getRoles().stream()
-                        .map(roleId -> roleProvider.role(roleId).orElseThrow(() -> new RoleMissingException(roleId)))
-                        .collect(toList()));
+    public User update(@NotNull UserId userId, @NotNull @Valid UserUpdateRequest request) throws UserMissingException {
+        User user = userInvariants.ensuredExistence(userId)
+                .updatedWith(request.getEmail(), request.getEnabled(), roleProvider.roles(request.getRoles()));
         userRepository.update(user);
         return user;
     }
@@ -91,8 +83,8 @@ public class DefaultUserManager implements ManageUser {
 
     @Override
     @Transactional
-    public void resetPassword(UserId id) throws UserMissingException {
-        User user = queryUser.get(id);
+    public void resetPassword(UserId userId) throws UserMissingException {
+        User user = userInvariants.ensuredExistence(userId);
         String newPassword = passwordGenerator.generatePassword();
         User updatedUser = user.withPassword(encoder.encode(newPassword));
 
