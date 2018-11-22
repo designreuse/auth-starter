@@ -1,12 +1,12 @@
 package com.gramant.auth.app;
 
-import com.gramant.auth.adapters.rest.request.PasswordResetRequest;
+import com.gramant.auth.adapters.rest.request.PasswordRecoverRequest;
 import com.gramant.auth.adapters.rest.request.PasswordUpdateRequest;
 import com.gramant.auth.domain.*;
 import com.gramant.auth.domain.event.EmailConfirmationCompleted;
 import com.gramant.auth.domain.event.EmailConfirmationRequested;
-import com.gramant.auth.domain.event.PasswordResetCompleted;
-import com.gramant.auth.domain.event.PasswordResetRequested;
+import com.gramant.auth.domain.event.PasswordRecoverCompleted;
+import com.gramant.auth.domain.event.PasswordRecoverRequested;
 import com.gramant.auth.domain.ex.UserMissingException;
 import com.gramant.auth.domain.ex.VerificationTokenExpiredException;
 import com.gramant.auth.domain.ex.VerificationTokenNotFoundException;
@@ -20,7 +20,7 @@ import javax.validation.constraints.NotNull;
 
 public interface VerificationTokenOperations {
 
-    void requestPasswordChange(@NotNull @Valid PasswordResetRequest passwordResetRequest) throws UserMissingException;
+    void requestPasswordRecover(@NotNull @Valid PasswordRecoverRequest passwordRecoverRequest) throws UserMissingException;
 
     VerificationToken getValidToken(VerificationTokenId id) throws VerificationTokenNotFoundException, VerificationTokenExpiredException;
 
@@ -45,13 +45,13 @@ public interface VerificationTokenOperations {
         private ApplicationEventPublisher eventPublisher;
 
         @Override
-        public void requestPasswordChange(@NotNull @Valid PasswordResetRequest passwordResetRequest) throws UserMissingException {
-            User user = userRepository.findByEmail(passwordResetRequest.getEmail())
-                    .orElseThrow(() -> new UserMissingException(passwordResetRequest.getEmail()));
+        public void requestPasswordRecover(@NotNull @Valid PasswordRecoverRequest passwordRecoverRequest) throws UserMissingException {
+            User user = userRepository.findByEmail(passwordRecoverRequest.getEmail())
+                    .orElseThrow(() -> new UserMissingException(passwordRecoverRequest.getEmail()));
             VerificationToken verificationToken = new VerificationToken(user, VerificationTokenType.PASSWORD);
             verificationTokenRepository.add(verificationToken);
 
-            eventPublisher.publishEvent(new PasswordResetRequested(passwordResetRequest.getEmail(), verificationToken));
+            eventPublisher.publishEvent(new PasswordRecoverRequested(passwordRecoverRequest.getEmail(), verificationToken));
         }
 
         @Override
@@ -71,7 +71,7 @@ public interface VerificationTokenOperations {
             userRepository.update(user.withPassword(encoder.encode(passwordUpdateRequest.getPassword())));
             verificationTokenRepository.remove(token.tokenId());
 
-            eventPublisher.publishEvent(new PasswordResetCompleted(user));
+            eventPublisher.publishEvent(new PasswordRecoverCompleted(user));
         }
 
         @Override

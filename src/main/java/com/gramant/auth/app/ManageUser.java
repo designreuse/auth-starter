@@ -25,4 +25,10 @@ public interface ManageUser {
     void batchUpdateActivity(@NotNull @Valid UpdateActivityRequest request, boolean activate);
 
     void communicate(@NotNull @Valid CommunicationRequest request);
+
+    /**
+     * Sets password to random value and fires PasswordResetCompleted event
+     * @param id subject user id
+     */
+    void resetPassword(UserId id) throws UserMissingException;
 }

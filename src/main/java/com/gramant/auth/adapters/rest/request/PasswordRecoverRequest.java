@@ -7,13 +7,13 @@ import lombok.Getter;
 import javax.validation.constraints.Email;
 
 @Getter
-public class PasswordResetRequest {
+public class PasswordRecoverRequest {
 
     @Email
     private String email;
 
     @JsonCreator
-    public PasswordResetRequest(@JsonProperty("email") String email) {
+    public PasswordRecoverRequest(@JsonProperty("email") String email) {
         this.email = email;
     }
 }

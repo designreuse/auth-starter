@@ -1,9 +1,11 @@
 package com.gramant.auth.app;
 
 import com.gramant.auth.AuthProperties;
+import com.gramant.auth.domain.PasswordGenerator;
 import com.gramant.auth.domain.User;
 import com.gramant.auth.domain.UserId;
 import com.gramant.auth.domain.UserRepository;
+import com.gramant.auth.domain.event.PasswordResetCompleted;
 import com.gramant.auth.domain.event.UserCreatedEvent;
 import com.gramant.auth.adapters.rest.request.CommunicationRequest;
 import com.gramant.auth.adapters.rest.request.UpdateActivityRequest;
@@ -22,6 +24,7 @@ import javax.validation.constraints.NotNull;
 
 import java.util.Collection;
 import java.util.Optional;
+import java.util.UUID;
 
 import static java.util.stream.Collectors.toList;
 
@@ -29,19 +32,21 @@ import static java.util.stream.Collectors.toList;
 @Validated
 public class DefaultUserManager implements ManageUser {
 
-    private UserRepository userRepository;
-    private PasswordEncoder encoder;
-    private Notifier notifier;
-    private RoleProvider roleProvider;
+    private final UserRepository userRepository;
+    private final PasswordEncoder encoder;
+    private final Notifier notifier;
+    private final RoleProvider roleProvider;
     private final ApplicationEventPublisher eventPublisher;
     private final AuthProperties authProperties;
     private final VerificationTokenOperations verificationTokenOperations;
+    private final QueryUser queryUser;
+    private final PasswordGenerator passwordGenerator;
 
     @Override
     public User add(@NotNull @Valid UserRegistrationRequest userRegistrationRequest) {
         User createdUser = userRepository
                 .add(userRegistrationRequest.asUserWithMappedPassword(
-                        password -> encoder.encode(password),
+                        encoder::encode,
                         roleProvider.defaultRole(),
                         !authProperties.getConfirmEmail()));
 
@@ -57,8 +62,7 @@ public class DefaultUserManager implements ManageUser {
 
     @Override
     public User update(@NotNull UserId id, @NotNull @Valid UserUpdateRequest request) throws UserMissingException {
-        Optional<User> oldUser = userRepository.get(id);
-        User user = oldUser.orElseThrow(() -> new UserMissingException(id))
+        User user = queryUser.get(id)
                 .updatedWith(request.getEmail(), request.getEnabled(), request.getRoles().stream()
                         .map(roleId -> roleProvider.role(roleId).orElseThrow(() -> new RoleMissingException(roleId)))
                         .collect(toList()));
@@ -83,5 +87,16 @@ public class DefaultUserManager implements ManageUser {
         Collection<User> users = userRepository.getAll(request.userIds());
 
         users.forEach(u -> notifier.communicate(u, request.message()));
+    }
+
+    @Override
+    @Transactional
+    public void resetPassword(UserId id) throws UserMissingException {
+        User user = queryUser.get(id);
+        String newPassword = passwordGenerator.generatePassword();
+        User updatedUser = user.withPassword(encoder.encode(newPassword));
+
+        userRepository.update(updatedUser);
+        eventPublisher.publishEvent(new PasswordResetCompleted(user, newPassword));
     }
 }

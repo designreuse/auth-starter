@@ -6,13 +6,10 @@ import lombok.experimental.Accessors;
 
 @Getter
 @Accessors(fluent = true)
-public class PasswordResetCompleted {
-
+public class PasswordRecoverCompleted {
     private final User user;
-    private final String newPassword;
 
-    public PasswordResetCompleted(User user, String newPassword) {
+    public PasswordRecoverCompleted(User user) {
         this.user = user;
-        this.newPassword = newPassword;
     }
 }

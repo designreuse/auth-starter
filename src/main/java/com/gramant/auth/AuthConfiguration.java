@@ -91,12 +91,12 @@ public class AuthConfiguration {
             }
 
             @Override
-            public void resetPassword(VerificationToken token) {
+            public void recoverPassword(VerificationToken token) {
                 throw new UnsupportedOperationException("not implemented!");
             }
 
             @Override
-            public void resetPasswordSuccess(User user) {
+            public void recoverPasswordSuccess(User user) {
                 throw new UnsupportedOperationException("not implemented!");
             }
 
@@ -109,15 +109,20 @@ public class AuthConfiguration {
             public void confirmEmailSuccess(User user) {
                 throw new UnsupportedOperationException("not implemented!");
             }
+
+            @Override
+            public void resetPasswordSuccess(User user, String newPassword) {
+                throw new UnsupportedOperationException("not implemented!");
+            }
         };
     }
 
     @Bean
     public ManageUser manageUser(UserRepository userRepository, Notifier notifier, RoleProvider roleProvider,
                                  ApplicationEventPublisher eventPublisher, AuthProperties authProperties,
-                                 VerificationTokenOperations verificationTokenOperations) {
+                                 VerificationTokenOperations verificationTokenOperations, QueryUser queryUser) {
         return new DefaultUserManager(userRepository, passwordEncoder(), notifier, roleProvider, eventPublisher,
-                authProperties, verificationTokenOperations);
+                authProperties, verificationTokenOperations, queryUser, passwordGenerator());
     }
 
     @Bean
@@ -128,6 +133,11 @@ public class AuthConfiguration {
     @Bean
     public QueryUser queryUser(UserRepository userRepository) {
         return new QueryUser.Default(userRepository);
+    }
+
+    @Bean
+    public PasswordGenerator passwordGenerator() {
+        return new PasswordGenerator();
     }
 
     @Bean
@@ -164,14 +174,14 @@ public class AuthConfiguration {
 
         @EventListener
         @Async
-        public void processPasswordResetRequestedEvent(PasswordResetRequested event) {
-            notifier.resetPassword(event.verificationToken());
+        public void processPasswordRecoverRequestedEvent(PasswordRecoverRequested event) {
+            notifier.recoverPassword(event.verificationToken());
         }
 
         @EventListener
         @Async
-        public void processPasswordResetCompletedEvent(PasswordResetCompleted event) {
-            notifier.resetPasswordSuccess(event.user());
+        public void processPasswordRecoverCompletedEvent(PasswordRecoverCompleted event) {
+            notifier.recoverPasswordSuccess(event.user());
         }
 
         @EventListener
@@ -184,6 +194,12 @@ public class AuthConfiguration {
         @Async
         public void processEmailConfirmationCompletedEvent(EmailConfirmationCompleted event) {
             notifier.confirmEmailSuccess(event.user());
+        }
+
+        @EventListener
+        @Async
+        public void processPasswordResetCompletedEvent(PasswordResetCompleted event) {
+            notifier.resetPasswordSuccess(event.user(), event.newPassword());
         }
     }
 }

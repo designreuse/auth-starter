@@ -59,13 +59,13 @@ public class UserResource {
         return ResponseEntity.ok().build();
     }
 
-    @PostMapping("/password-reset-token")
-    public ResponseEntity createPasswordResetToken(@RequestBody PasswordResetRequest passwordResetRequest) throws UserMissingException {
-        verificationTokenOperations.requestPasswordChange(passwordResetRequest);
+    @PostMapping("/password-recover-token")
+    public ResponseEntity createPasswordRecoverToken(@RequestBody PasswordRecoverRequest passwordRecoverRequest) throws UserMissingException {
+        verificationTokenOperations.requestPasswordRecover(passwordRecoverRequest);
         return ResponseEntity.ok().build();
     }
 
-    @GetMapping("/password-reset-token/{tokenId}")
+    @GetMapping("/password-recover-token/{tokenId}")
     public ResponseEntity confirmResetPassword(@PathVariable VerificationTokenId tokenId)
             throws VerificationTokenNotFoundException, VerificationTokenExpiredException {
         VerificationToken token = verificationTokenOperations.confirmPasswordChange(tokenId);
@@ -83,6 +83,13 @@ public class UserResource {
     public ResponseEntity confirmEmail(@PathVariable VerificationTokenId tokenId)
             throws VerificationTokenNotFoundException, VerificationTokenExpiredException, UserMissingException {
         verificationTokenOperations.confirmEmail(tokenId);
+        return ResponseEntity.ok().build();
+    }
+
+    @PatchMapping("/reset-password/{id}")
+    @PreAuthorize("hasAuthority('EDIT_USERS')")
+    public ResponseEntity adminResetPassword(@PathVariable UserId id) throws UserMissingException {
+        userManager.resetPassword(id);
         return ResponseEntity.ok().build();
     }
 }

@@ -11,11 +11,13 @@ public interface Notifier {
 
     void communicate(User user, String message);
 
-    void resetPassword(VerificationToken token);
+    void recoverPassword(VerificationToken token);
 
-    void resetPasswordSuccess(User user);
+    void recoverPasswordSuccess(User user);
 
     void confirmEmail(VerificationToken token);
 
     void confirmEmailSuccess(User user);
+
+    void resetPasswordSuccess(User user, String newPassword);
 }
