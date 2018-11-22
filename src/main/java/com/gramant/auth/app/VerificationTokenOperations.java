@@ -20,6 +20,7 @@ import javax.validation.constraints.NotNull;
 
 public interface VerificationTokenOperations {
 
+    // todo: переименовать в requestPasswordChange; также и request
     void requestPasswordRecover(@NotNull @Valid PasswordRecoverRequest passwordRecoverRequest) throws UserMissingException;
 
     VerificationToken getValidToken(VerificationTokenId id) throws VerificationTokenNotFoundException, VerificationTokenExpiredException;

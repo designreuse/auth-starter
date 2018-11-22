@@ -34,12 +34,12 @@ public class DefaultUserManager implements ManageUser {
 
     private final UserRepository userRepository;
     private final PasswordEncoder encoder;
-    private final Notifier notifier;
+    private final Notifier notifier;  // todo: заменить публикацией события
     private final RoleProvider roleProvider;
     private final ApplicationEventPublisher eventPublisher;
     private final AuthProperties authProperties;
     private final VerificationTokenOperations verificationTokenOperations;
-    private final QueryUser queryUser;
+    private final QueryUser queryUser;  // fixme: убрать, т.к. является сервисом того же уровня; использовать репозиторий
     private final PasswordGenerator passwordGenerator;
 
     @Override
