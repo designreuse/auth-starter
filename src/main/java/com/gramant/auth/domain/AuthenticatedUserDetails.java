@@ -11,8 +11,8 @@ import static java.util.stream.Collectors.toList;
 
 @ToString(of = {"user"})
 public class AuthenticatedUserDetails implements UserDetails {
-    private User user;
-    private Object additionalData;
+    private final User user;
+    private final Object additionalData;
 
     public AuthenticatedUserDetails(User user, Object additionalData) {
         this.user = user;
@@ -62,5 +62,9 @@ public class AuthenticatedUserDetails implements UserDetails {
 
     public Object getAdditionalData() {
         return additionalData;
+    }
+
+    public boolean isImpersonated() {
+        return getAuthorities().stream().anyMatch(a -> a.getAuthority().equals("ROLE_PREVIOUS_ADMINISTRATOR"));
     }
 }

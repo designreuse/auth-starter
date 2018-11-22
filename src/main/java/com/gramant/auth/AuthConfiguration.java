@@ -48,18 +48,13 @@ public class AuthConfiguration {
     }
 
     @Bean
-    public ProfileResource authResource(AuthenticationOperations authenticationOperations) {
-        return new ProfileResource(authenticationOperations);
+    public ProfileResource authResource() {
+        return new ProfileResource();
     }
 
     @Bean
     public ExistsValidationResource existsValidationResource(QueryUser queryUser) {
         return new ExistsValidationResource(queryUser);
-    }
-
-    @Bean
-    public AuthenticationOperations authenticationOperations() {
-        return new AuthenticationOperations.Default();
     }
 
     @Bean

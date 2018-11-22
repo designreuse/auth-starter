@@ -15,12 +15,12 @@ public class PrivilegedUserRepresentation {
     private Object additionalData;
     private Boolean impersonate;
 
-    public PrivilegedUserRepresentation(MetaUser metaUser) {
-        User user = metaUser.getUser();
+    public PrivilegedUserRepresentation(AuthenticatedUserDetails principal) {
+        User user = principal.getUser();
         this.id = user.id().asString();
         this.email = user.email();
         this.privileges = user.roles().stream().map(PrivilegedRole::id).map(RoleId::asString).collect(toList());
-        this.additionalData = metaUser.getUserDetails().getAdditionalData();
-        this.impersonate = metaUser.isImpersonated();
+        this.additionalData = principal.getAdditionalData();
+        this.impersonate = principal.isImpersonated();
     }
 }
