@@ -5,6 +5,7 @@ import lombok.Getter;
 import lombok.experimental.Accessors;
 
 import java.time.LocalDateTime;
+import java.util.Objects;
 import java.util.UUID;
 
 @Getter
@@ -16,15 +17,16 @@ public class VerificationToken {
 
     private final VerificationTokenType type;
     private final VerificationTokenId tokenId;
-    // todo: судя по всему требуется только UserId - заменить User на UserId
-    private final User user;
+    private final UserId userId;
     private final LocalDateTime expiryDate;
 
-    public VerificationToken(User user, VerificationTokenType type) {
-        this.user = user;
+    public VerificationToken(UserId userId, VerificationTokenType tokenType) {
+        Objects.requireNonNull(userId);
+        Objects.requireNonNull(tokenType);
+        this.userId = userId;
         this.tokenId = VerificationTokenId.of(UUID.randomUUID().toString());
         this.expiryDate = LocalDateTime.now().plusSeconds(EXPIRY_SECONDS);
-        this.type = type;
+        this.type = tokenType;
     }
 
     public boolean expired() {

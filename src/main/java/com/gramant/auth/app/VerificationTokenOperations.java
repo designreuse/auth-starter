@@ -49,7 +49,7 @@ public interface VerificationTokenOperations {
         public void requestPasswordRecover(@NotNull @Valid PasswordRecoverRequest passwordRecoverRequest) throws UserMissingException {
             User user = userRepository.findByEmail(passwordRecoverRequest.getEmail())
                     .orElseThrow(() -> new UserMissingException(passwordRecoverRequest.getEmail()));
-            VerificationToken verificationToken = new VerificationToken(user, VerificationTokenType.PASSWORD);
+            VerificationToken verificationToken = new VerificationToken(user.id(), VerificationTokenType.PASSWORD);
             verificationTokenRepository.add(verificationToken);
 
             eventPublisher.publishEvent(new PasswordRecoverRequested(passwordRecoverRequest.getEmail(), verificationToken));
@@ -68,7 +68,7 @@ public interface VerificationTokenOperations {
         @Override
         public void updatePassword(@NotNull @Valid PasswordUpdateRequest passwordUpdateRequest) throws VerificationTokenExpiredException, VerificationTokenNotFoundException, UserMissingException {
             VerificationToken token = getValidToken(passwordUpdateRequest.getTokenId());
-            User user = userRepository.get(token.user().id()).orElseThrow(() -> new UserMissingException(token.user().id()));
+            User user = userRepository.get(token.userId()).orElseThrow(() -> new UserMissingException(token.userId()));
             userRepository.update(user.withPassword(encoder.encode(passwordUpdateRequest.getPassword())));
             verificationTokenRepository.remove(token.tokenId());
 
@@ -77,7 +77,7 @@ public interface VerificationTokenOperations {
 
         @Override
         public void requestEmailConfirmation(@NotNull User user) {
-            VerificationToken token = new VerificationToken(user, VerificationTokenType.EMAIL);
+            VerificationToken token = new VerificationToken(user.id(), VerificationTokenType.EMAIL);
             verificationTokenRepository.add(token);
 
             eventPublisher.publishEvent(new EmailConfirmationRequested(user.email(), token));
@@ -86,7 +86,7 @@ public interface VerificationTokenOperations {
         @Override
         public void confirmEmail(VerificationTokenId id) throws VerificationTokenNotFoundException, VerificationTokenExpiredException, UserMissingException {
             VerificationToken token = getValidToken(id);
-            User user = userRepository.get(token.user().id()).orElseThrow(() -> new UserMissingException(token.user().id()));
+            User user = userRepository.get(token.userId()).orElseThrow(() -> new UserMissingException(token.userId()));
             userRepository.update(user.asActivated());
             verificationTokenRepository.remove(id);
 

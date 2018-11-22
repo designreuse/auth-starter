@@ -69,7 +69,7 @@ public class UserResource {
     public ResponseEntity confirmResetPassword(@PathVariable VerificationTokenId tokenId)
             throws VerificationTokenNotFoundException, VerificationTokenExpiredException {
         VerificationToken token = verificationTokenOperations.confirmPasswordChange(tokenId);
-        return ResponseEntity.ok().body(token.user().id().asString());
+        return ResponseEntity.ok().body(token.userId().asString());
     }
 
     @PutMapping("/password")

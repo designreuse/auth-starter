@@ -25,7 +25,7 @@ public class JdbcVerificationTokenRepository implements VerificationTokenReposit
         jdbcTemplate.update("insert into verification_token (token, user_id, expiry_date, token_type) values (?, ?, ?, ?);",
                 ps -> {
             ps.setString(1, token.tokenId().asString());
-            ps.setString(2, token.user().id().asString());
+            ps.setString(2, token.userId().asString());
             ps.setTimestamp(3, Timestamp.valueOf(token.expiryDate()));
             ps.setString(4, token.type().name());
                 });
@@ -50,12 +50,12 @@ public class JdbcVerificationTokenRepository implements VerificationTokenReposit
     @Setter
     private static class VerificationTokenData {
         private VerificationTokenId token;
-        private String userId;
+        private UserId userId;
         private LocalDateTime expiryDate;
         private String tokenType;
 
         VerificationToken asVerificationToken() {
-            return new VerificationToken(VerificationTokenType.valueOf(tokenType), token, User.builder().id(UserId.of(userId)).build(), expiryDate);
+            return new VerificationToken(VerificationTokenType.valueOf(tokenType), token, userId, expiryDate);
         }
     }
 }
