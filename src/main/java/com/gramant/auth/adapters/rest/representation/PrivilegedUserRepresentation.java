@@ -3,6 +3,7 @@ package com.gramant.auth.adapters.rest.representation;
 import com.gramant.auth.domain.AuthenticatedUserDetails;
 import com.gramant.auth.domain.User;
 import lombok.Getter;
+import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
 
 import java.util.List;
@@ -15,12 +16,13 @@ public class PrivilegedUserRepresentation {
     private List<String> privileges;
     private Object additionalData;
 
-    public PrivilegedUserRepresentation(AuthenticatedUserDetails userDetails) {
-        User user = userDetails.getUser();
+    public PrivilegedUserRepresentation(Authentication authentication) {
+        AuthenticatedUserDetails principal = (AuthenticatedUserDetails) authentication.getPrincipal();
+        User user = principal.getUser();
 
         this.id = user.id().asString();
         this.email = user.email();
-        this.privileges = userDetails.getAuthorities().stream().map(GrantedAuthority::getAuthority).collect(Collectors.toList());
-        this.additionalData = userDetails.getAdditionalData();
+        this.privileges = authentication.getAuthorities().stream().map(GrantedAuthority::getAuthority).collect(Collectors.toList());
+        this.additionalData = principal.getAdditionalData();
     }
 }
