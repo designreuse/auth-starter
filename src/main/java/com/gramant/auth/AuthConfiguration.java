@@ -100,7 +100,7 @@ public class AuthConfiguration {
             }
 
             @Override
-            public void recoverPassword(VerificationToken token) {
+            public void recoverPassword(VerificationToken token, String email) {
                 throw new UnsupportedOperationException("not implemented!");
             }
 
@@ -110,7 +110,7 @@ public class AuthConfiguration {
             }
 
             @Override
-            public void confirmEmail(VerificationToken token) {
+            public void confirmEmail(VerificationToken token, String email) {
                 throw new UnsupportedOperationException("not implemented!");
             }
 
@@ -184,7 +184,7 @@ public class AuthConfiguration {
         @EventListener
         @Async
         public void processPasswordRecoverRequestedEvent(PasswordRecoverRequested event) {
-            notifier.recoverPassword(event.verificationToken());
+            notifier.recoverPassword(event.verificationToken(), event.email());
         }
 
         @EventListener
@@ -196,7 +196,7 @@ public class AuthConfiguration {
         @EventListener
         @Async
         public void processEmailConfirmationRequestedEvent(EmailConfirmationRequested event) {
-            notifier.confirmEmail(event.token());
+            notifier.confirmEmail(event.token(), event.email());
         }
 
         @EventListener
