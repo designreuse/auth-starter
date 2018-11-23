@@ -63,8 +63,4 @@ public class AuthenticatedUserDetails implements UserDetails {
     public Object getAdditionalData() {
         return additionalData;
     }
-
-    public boolean isImpersonated() {
-        return getAuthorities().stream().anyMatch(a -> a.getAuthority().equals("ROLE_PREVIOUS_ADMINISTRATOR"));
-    }
 }

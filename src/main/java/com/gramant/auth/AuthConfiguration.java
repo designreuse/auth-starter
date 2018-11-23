@@ -48,8 +48,8 @@ public class AuthConfiguration {
     }
 
     @Bean
-    public ProfileResource authResource() {
-        return new ProfileResource();
+    public ProfileResource authResource(AuthenticationOperations authenticationOperations) {
+        return new ProfileResource(authenticationOperations);
     }
 
     @Bean
@@ -64,6 +64,11 @@ public class AuthConfiguration {
             PasswordEncoder passwordEncoder,
             ApplicationEventPublisher eventPublisher) {
         return new VerificationTokenOperations.Default(verificationTokenRepository, userRepository, passwordEncoder, eventPublisher);
+    }
+
+    @Bean
+    public AuthenticationOperations authenticationOperations() {
+        return new AuthenticationOperations.Default();
     }
 
     @Bean
