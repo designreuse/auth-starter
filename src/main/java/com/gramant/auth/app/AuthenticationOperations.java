@@ -2,7 +2,6 @@ package com.gramant.auth.app;
 
 import com.gramant.auth.domain.AuthenticatedUserDetails;
 import com.gramant.auth.domain.MetaUser;
-import com.gramant.auth.domain.User;
 import org.springframework.security.core.Authentication;
 
 import java.util.Optional;
@@ -22,10 +21,9 @@ public interface AuthenticationOperations {
 
         private MetaUser asMetaUser(Authentication authentication) {
             AuthenticatedUserDetails principal = (AuthenticatedUserDetails) authentication.getPrincipal();
-            User user = principal.getUser();
             boolean impersonated = authentication.getAuthorities().stream().anyMatch(a -> a.getAuthority().equals("ROLE_PREVIOUS_ADMINISTRATOR"));
 
-            return new MetaUser(user, principal, impersonated);
+            return new MetaUser(principal, impersonated);
         }
     }
 }
