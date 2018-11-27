@@ -2,14 +2,13 @@ package com.gramant.auth.adapters.jdbc;
 
 import com.gramant.auth.domain.*;
 import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.Setter;
-import org.springframework.jdbc.core.BeanPropertyRowMapper;
 import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.jdbc.core.RowMapper;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.sql.Timestamp;
-import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
@@ -17,7 +16,7 @@ import java.util.Optional;
 public class JdbcVerificationTokenRepository implements VerificationTokenRepository {
 
     private JdbcTemplate jdbcTemplate;
-    private static final BeanPropertyRowMapper<VerificationTokenData> VERIFICATION_TOKEN_DATA_MAPPER = new BeanPropertyRowMapper<>(VerificationTokenData.class);
+    private static final RowMapper<VerificationToken> VERIFICATION_TOKEN_MAPPER = new VerificationTokenMapper();
 
     @Override
     @Transactional
@@ -28,16 +27,16 @@ public class JdbcVerificationTokenRepository implements VerificationTokenReposit
             ps.setString(2, token.userId().asString());
             ps.setTimestamp(3, Timestamp.valueOf(token.expiryDate()));
             ps.setString(4, token.type().name());
-                });
+        });
     }
 
     @Override
     @Transactional(readOnly = true)
     public Optional<VerificationToken> get(VerificationTokenId tokenId) {
-        List<VerificationTokenData> result = jdbcTemplate.query("select token, user_id, expiry_date, token_type from verification_token where token = ?",
+        List<VerificationToken> result = jdbcTemplate.query("select token, user_id, expiry_date, token_type from verification_token where token = ?",
                 new Object[]{tokenId.asString()},
-                VERIFICATION_TOKEN_DATA_MAPPER);
-        return result.isEmpty() ? Optional.empty() : Optional.of(result.get(0).asVerificationToken());
+                VERIFICATION_TOKEN_MAPPER);
+        return result.isEmpty() ? Optional.empty() : Optional.of(result.get(0));
     }
 
     @Override
@@ -46,16 +45,16 @@ public class JdbcVerificationTokenRepository implements VerificationTokenReposit
         jdbcTemplate.update("delete from verification_token where token = ?", tokenId.asString());
     }
 
-    @Getter
-    @Setter
-    private static class VerificationTokenData {
-        private VerificationTokenId token;
-        private UserId userId;
-        private LocalDateTime expiryDate;
-        private String tokenType;
+    private static class VerificationTokenMapper implements RowMapper<VerificationToken> {
 
-        VerificationToken asVerificationToken() {
-            return new VerificationToken(VerificationTokenType.valueOf(tokenType), token, userId, expiryDate);
+        @Override
+        public VerificationToken mapRow(ResultSet rs, int rowNum) throws SQLException {
+            return new VerificationToken(
+                    VerificationTokenType.valueOf(rs.getString("token_type")),
+                    VerificationTokenId.of(rs.getString("token")),
+                    UserId.of(rs.getString("user_id")),
+                    rs.getTimestamp("expiry_date").toLocalDateTime()
+            );
         }
     }
 }
