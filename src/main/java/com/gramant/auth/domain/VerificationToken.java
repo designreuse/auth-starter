@@ -25,7 +25,7 @@ public class VerificationToken {
         Objects.requireNonNull(tokenType);
         this.userId = userId;
         this.tokenId = VerificationTokenId.of(UUID.randomUUID().toString());
-        this.expiryDate = LocalDateTime.now().plusSeconds(EXPIRY_SECONDS);
+        this.expiryDate = LocalDateTime.now().plusSeconds(EXPIRY_SECONDS * tokenType.getTimeFactor());
         this.type = tokenType;
     }
 
