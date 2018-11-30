@@ -12,6 +12,7 @@ import com.gramant.auth.domain.event.UsersMessaged;
 import com.gramant.auth.domain.ex.UserMissingException;
 import lombok.AllArgsConstructor;
 import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.security.core.parameters.P;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.validation.annotation.Validated;
@@ -20,6 +21,7 @@ import javax.validation.Valid;
 import javax.validation.constraints.NotNull;
 
 import java.util.Collection;
+import java.util.Optional;
 
 import static java.util.stream.Collectors.toList;
 
@@ -33,25 +35,58 @@ public class DefaultUserManager implements ManageUser {
     private final ApplicationEventPublisher eventPublisher;
     private final AuthProperties authProperties;
     private final VerificationTokenOperations verificationTokenOperations;
+    private final VerificationTokenRepository verificationTokenRepository;
     private final UserInvariants userInvariants;
     private final PasswordGenerator passwordGenerator;
 
+    /**
+     * Регистрирует пользователя.
+     * Если включено подтверждение почты, то если пользователь уже зарегистрирован,
+     * но еще не подтвердил свой аккаунт, то высылается еще одно уведомление, а токен
+     * из предыдущего инвалидируется.
+     */
     @Override
     public User add(@NotNull @Valid UserRegistrationRequest userRegistrationRequest) {
-        User createdUser = userRepository
-                .add(userRegistrationRequest.asUserWithMappedPassword(
-                        encoder::encode,
-                        roleProvider.defaultRole(),
-                        !authProperties.getConfirmEmail()));
+        Optional<User> oldUserOptional = userRepository.findByEmail(userRegistrationRequest.getEmail());
 
-        if (authProperties.getConfirmEmail()) {
-            verificationTokenOperations.requestEmailConfirmation(createdUser);
+        if (oldUserOptional.isPresent()) {
+            if (authProperties.getConfirmEmail()) {
+                //  пользователь регистрировался раньше
+                User oldUser = oldUserOptional.get();
+
+                if (oldUser.enabled()) {
+                    //  и уже активировал аккаунт по токену
+                    throw new RuntimeException("Cannot register user: already registered and enabled");
+                } else {
+                    // еще не активировал аккаунт
+                    Optional<VerificationToken> oldTokenOptional = verificationTokenRepository.findByUserId(oldUser.id());
+
+                    oldTokenOptional.ifPresent((token) -> verificationTokenRepository.remove(token.tokenId()));
+                    verificationTokenOperations.requestEmailConfirmation(oldUser);
+                    return oldUser;
+                }
+            } else {
+                throw new RuntimeException("Email confirmation disabled: cannot proceed registration request" +
+                        " when user is already registered");
+            }
+
+        } else {
+            //первая попытка регистрации
+            User createdUser = userRepository
+                    .add(userRegistrationRequest.asUserWithMappedPassword(
+                            encoder::encode,
+                            roleProvider.defaultRole(),
+                            !authProperties.getConfirmEmail()));
+
+            if (authProperties.getConfirmEmail()) {
+                verificationTokenOperations.requestEmailConfirmation(createdUser);
+            }
+
+            eventPublisher.publishEvent(new UserCreatedEvent(createdUser.id(), createdUser.roles(),
+                    userRegistrationRequest.getAdditionalProperties()));
+
+            return createdUser;
         }
-
-        eventPublisher.publishEvent(new UserCreatedEvent(createdUser.id(), createdUser.roles(),
-                userRegistrationRequest.getAdditionalProperties()));
-
-        return createdUser;
     }
 
     @Override
