@@ -57,7 +57,7 @@ public class DefaultUserManager implements ManageUser {
     @Override
     public User update(@NotNull UserId userId, @NotNull @Valid UserUpdateRequest request) throws UserMissingException {
         User user = userInvariants.ensuredExistence(userId)
-                .updatedWith(request.getEmail(), request.getEnabled(), roleProvider.roles(request.getRoles()));
+                .updatedWith(request.getEmail(), request.getNonLocked(), roleProvider.roles(request.getRoles()));
         userRepository.update(user);
         return user;
     }
@@ -68,9 +68,9 @@ public class DefaultUserManager implements ManageUser {
         Collection<User> users = userRepository.getAll(request.userIds());
 
         if (activate) {
-            userRepository.updateAll(users.stream().map(User::asActivated).collect(toList()));
+            userRepository.updateAll(users.stream().map(User::asNonLocked).collect(toList()));
         } else {
-            userRepository.updateAll(users.stream().map(User::asDeactivated).collect(toList()));
+            userRepository.updateAll(users.stream().map(User::asLocked).collect(toList()));
         }
     }
 

@@ -25,40 +25,46 @@ public class User {
     private String password;
     private boolean enabled;
     private LocalDateTime lastLogin;
+    private boolean nonLocked;
     private final List<PrivilegedRole> roles;
 
     @Builder
-    public User(UserId id, String email, String password, boolean enabled, List<PrivilegedRole> roles, LocalDateTime lastLogin) {
+    public User(UserId id, String email, String password, boolean enabled, boolean nonLocked, List<PrivilegedRole> roles, LocalDateTime lastLogin) {
         Objects.requireNonNull(id);
         this.id = id;
         this.email = email;
         this.password = password;
         this.enabled = enabled;
+        this.nonLocked = nonLocked;
         this.roles = Optional.ofNullable(roles).orElseGet(Collections::emptyList);
         this.lastLogin = lastLogin;
     }
 
-    public User updatedWith(String email, boolean enabled, List<PrivilegedRole> roles) {
-        return new User(this.id, email, this.password, enabled, roles, this.lastLogin);
+    public User updatedWith(String email, boolean nonLocked, List<PrivilegedRole> roles) {
+        return new User(this.id, email, this.password, this.enabled, nonLocked, roles, this.lastLogin);
     }
 
     public User withId(UserId userId) {
-        return new User(userId, this.email, this.password, this.enabled, this.roles, this.lastLogin);
+        return new User(userId, this.email, this.password, this.enabled, this.nonLocked, this.roles, this.lastLogin);
     }
 
     public User withPassword(String password) {
-        return new User(this.id, this.email, password, this.enabled, this.roles, this.lastLogin);
+        return new User(this.id, this.email, password, this.enabled, this.nonLocked, this.roles, this.lastLogin);
     }
 
     public User withRoles(List<PrivilegedRole> roles) {
-        return new User(this.id, this.email, this.password, this.enabled, roles, this.lastLogin);
+        return new User(this.id, this.email, this.password, this.enabled, this.nonLocked, roles, this.lastLogin);
     }
 
-    public User asDeactivated() {
-        return new User(this.id, this.email, this.password, false, this.roles, this.lastLogin);
+    public User asLocked() {
+        return new User(this.id, this.email, this.password, this.enabled, false, this.roles, this.lastLogin);
     }
 
-    public User asActivated() {
-        return new User(this.id, this.email, this.password, true, this.roles, this.lastLogin);
+    public User asNonLocked() {
+        return new User(this.id, this.email, this.password, this.enabled, true, this.roles, this.lastLogin);
+    }
+
+    public User asEnabled() {
+        return new User(this.id, this.email, this.password, true, this.nonLocked, this.roles, this.lastLogin);
     }
 }

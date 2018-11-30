@@ -26,7 +26,7 @@ public class JdbcUserRepository implements UserRepository {
     private static final RowMapper<UserData> USER_DATA_ROW_MAPPER = new UserDataRowMapper();
     private static final RowMapper<RoleId> ROLE_ID_ROW_MAPPER = (rs, rowNum) -> new RoleId(rs.getString("role_id"));
 
-    private static final String SELECT_USERS_SQL = "SELECT id, email, password, enabled, last_login FROM users ";
+    private static final String SELECT_USERS_SQL = "SELECT id, email, password, enabled, last_login, non_locked FROM users ";
 
     private JdbcTemplate jdbcTemplate;
     private NamedParameterJdbcTemplate namedParameterJdbcTemplate;
@@ -56,8 +56,8 @@ public class JdbcUserRepository implements UserRepository {
     @Override
     @Transactional
     public User add(User user) {
-        jdbcTemplate.update("insert into users (id, email, password, enabled, last_login) values (?, ?, ?, ?, ?)",
-                user.id().asString(), user.email(), user.password(), user.enabled(), user.lastLogin());
+        jdbcTemplate.update("insert into users (id, email, password, enabled, non_locked, last_login) values (?, ?, ?, ?, ?, ?)",
+                user.id().asString(), user.email(), user.password(), user.enabled(), user.nonLocked(), user.lastLogin());
 
         jdbcTemplate.batchUpdate("insert into authorities (user_id, role_id) values (?, ?)", new AuthoritiesBatchPsSetter(user));
         return user;
@@ -87,11 +87,11 @@ public class JdbcUserRepository implements UserRepository {
     @Override
     @Transactional
     public void updateAll(List<User> users) {
-        jdbcTemplate.batchUpdate("UPDATE users SET enabled = ? WHERE id = ?", new BatchPreparedStatementSetter() {
+        jdbcTemplate.batchUpdate("UPDATE users SET non_locked = ? WHERE id = ?", new BatchPreparedStatementSetter() {
             @Override
             public void setValues(PreparedStatement ps, int i) throws SQLException {
                 User user = users.get(i);
-                ps.setBoolean(1, user.enabled());
+                ps.setBoolean(1, user.nonLocked());
                 ps.setString(2, user.id().asString());
             }
 
@@ -106,8 +106,8 @@ public class JdbcUserRepository implements UserRepository {
     @Override
     @Transactional
     public void update(User user) {
-        jdbcTemplate.update("update users set email = ?, password = ?, enabled = ?, last_login = ? where id  = ?",
-                user.email(), user.password(), user.enabled(), user.lastLogin(), user.id().asString());
+        jdbcTemplate.update("update users set email = ?, password = ?, non_locked = ?, last_login = ? where id  = ?",
+                user.email(), user.password(), user.nonLocked(), user.lastLogin(), user.id().asString());
 
         jdbcTemplate.update("delete from authorities where user_id = ?", user.id().asString());
         jdbcTemplate.batchUpdate("insert into authorities (user_id, role_id) values (?, ?)", new AuthoritiesBatchPsSetter(user));
@@ -126,9 +126,10 @@ public class JdbcUserRepository implements UserRepository {
         private String email;
         private String password;
         private boolean enabled;
+        private boolean nonLocked;
 
         User asUser(List<PrivilegedRole> roles) {
-            return new User(id, email, password, enabled, roles, null);
+            return new User(id, email, password, enabled, nonLocked, roles, null);
         }
     }
 
@@ -158,7 +159,8 @@ public class JdbcUserRepository implements UserRepository {
                     UserId.of(rs.getString("id")),
                     rs.getString("email"),
                     rs.getString("password"),
-                    rs.getBoolean("enabled")
+                    rs.getBoolean("enabled"),
+                    rs.getBoolean("non_locked")
             );
         }
     }

@@ -12,6 +12,7 @@ public class UserRepresentation {
     private String id;
     private String email;
     private boolean enabled;
+    private boolean nonLocked;
     private LocalDateTime lastLogin;
     private List<PrivilegedRoleRepresentation> roles;
 
@@ -19,6 +20,7 @@ public class UserRepresentation {
         this.id = user.id().asString();
         this.email = user.email();
         this.enabled = user.enabled();
+        this.nonLocked = user.nonLocked();
         this.lastLogin = user.lastLogin();
         this.roles = user.roles().stream().map(PrivilegedRoleRepresentation::new).collect(Collectors.toList());
     }

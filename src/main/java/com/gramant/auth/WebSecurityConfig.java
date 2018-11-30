@@ -13,10 +13,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
-import org.springframework.security.authentication.AuthenticationManager;
-import org.springframework.security.authentication.BadCredentialsException;
-import org.springframework.security.authentication.DisabledException;
-import org.springframework.security.authentication.ProviderManager;
+import org.springframework.security.authentication.*;
 import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
 import org.springframework.security.config.annotation.method.configuration.EnableGlobalMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -131,6 +128,8 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
                 response.getWriter().write("BAD_CREDENTIALS");
             } else if (exception instanceof DisabledException) {
                 response.getWriter().write("DISABLED");
+            } else if (exception instanceof LockedException) {
+                response.getWriter().write("LOCKED");
             } else {
                 response.getWriter().write(exception.getMessage());
             }

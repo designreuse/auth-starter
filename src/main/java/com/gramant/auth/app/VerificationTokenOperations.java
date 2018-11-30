@@ -87,7 +87,7 @@ public interface VerificationTokenOperations {
         public void confirmEmail(VerificationTokenId id) throws VerificationTokenNotFoundException, VerificationTokenExpiredException, UserMissingException {
             VerificationToken token = getValidToken(id);
             User user = userRepository.get(token.userId()).orElseThrow(() -> new UserMissingException(token.userId()));
-            userRepository.update(user.asActivated());
+            userRepository.update(user.asEnabled());
             verificationTokenRepository.remove(id);
 
             eventPublisher.publishEvent(new EmailConfirmationCompleted(user));

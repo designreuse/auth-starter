@@ -16,7 +16,7 @@ import static java.util.Collections.emptyList;
 public class UserUpdateRequest {
 
     @NotNull
-    private Boolean enabled;
+    private Boolean nonLocked;
 
     @NotEmpty
     private String email;
@@ -25,10 +25,10 @@ public class UserUpdateRequest {
     private List<RoleId> roles;
 
     @JsonCreator
-    public UserUpdateRequest(@JsonProperty("enabled") Boolean enabled,
+    public UserUpdateRequest(@JsonProperty("nonLocked") Boolean nonLocked,
                              @JsonProperty("email") String email,
                              @JsonProperty("roles") List<RoleId> roles) {
-        this.enabled = enabled;
+        this.nonLocked = nonLocked;
         this.email = email;
         this.roles = Optional.ofNullable(roles).orElse(emptyList());
     }
