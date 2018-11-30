@@ -17,6 +17,7 @@ public class JdbcVerificationTokenRepository implements VerificationTokenReposit
 
     private JdbcTemplate jdbcTemplate;
     private static final RowMapper<VerificationToken> VERIFICATION_TOKEN_MAPPER = new VerificationTokenMapper();
+    private static final String SELECT_TOKEN_SQL = "select token, user_id, expiry_date, token_type from verification_token";
 
     @Override
     @Transactional
@@ -33,8 +34,17 @@ public class JdbcVerificationTokenRepository implements VerificationTokenReposit
     @Override
     @Transactional(readOnly = true)
     public Optional<VerificationToken> get(VerificationTokenId tokenId) {
-        List<VerificationToken> result = jdbcTemplate.query("select token, user_id, expiry_date, token_type from verification_token where token = ?",
+        List<VerificationToken> result = jdbcTemplate.query(SELECT_TOKEN_SQL + " where token = ?",
                 new Object[]{tokenId.asString()},
+                VERIFICATION_TOKEN_MAPPER);
+        return result.isEmpty() ? Optional.empty() : Optional.of(result.get(0));
+    }
+
+    @Override
+    @Transactional
+    public Optional<VerificationToken> findByUserId(UserId id) {
+        List<VerificationToken> result = jdbcTemplate.query(SELECT_TOKEN_SQL + " where user_id = ?",
+                new Object[] {id.asString()},
                 VERIFICATION_TOKEN_MAPPER);
         return result.isEmpty() ? Optional.empty() : Optional.of(result.get(0));
     }

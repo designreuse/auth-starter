@@ -17,6 +17,7 @@ import org.springframework.validation.annotation.Validated;
 
 import javax.validation.Valid;
 import javax.validation.constraints.NotNull;
+import java.util.Optional;
 
 public interface VerificationTokenOperations {
 
@@ -50,8 +51,11 @@ public interface VerificationTokenOperations {
             User user = userRepository.findByEmail(passwordRecoverRequest.getEmail())
                     .orElseThrow(() -> new UserMissingException(passwordRecoverRequest.getEmail()));
             VerificationToken verificationToken = new VerificationToken(user.id(), VerificationTokenType.PASSWORD);
-            verificationTokenRepository.add(verificationToken);
 
+            Optional<VerificationToken> oldToken = verificationTokenRepository.findByUserId(user.id());
+            oldToken.ifPresent(old -> verificationTokenRepository.remove(old.tokenId()));
+
+            verificationTokenRepository.add(verificationToken);
             eventPublisher.publishEvent(new PasswordRecoverRequested(passwordRecoverRequest.getEmail(), verificationToken));
         }
 

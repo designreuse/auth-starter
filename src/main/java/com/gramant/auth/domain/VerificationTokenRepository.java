@@ -8,5 +8,7 @@ public interface VerificationTokenRepository {
 
     Optional<VerificationToken> get(VerificationTokenId tokenId);
 
+    Optional<VerificationToken> findByUserId(UserId id);
+
     void remove(VerificationTokenId tokenId);
 }
