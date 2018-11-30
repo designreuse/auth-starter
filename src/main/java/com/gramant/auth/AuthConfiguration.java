@@ -129,9 +129,11 @@ public class AuthConfiguration {
     @Bean
     public ManageUser manageUser(UserRepository userRepository, Notifier notifier, RoleProvider roleProvider,
                                  ApplicationEventPublisher eventPublisher, AuthProperties authProperties,
-                                 VerificationTokenOperations verificationTokenOperations, UserInvariants userInvariants) {
+                                 VerificationTokenOperations verificationTokenOperations,
+                                 VerificationTokenRepository verificationTokenRepository,
+                                 UserInvariants userInvariants) {
         return new DefaultUserManager(userRepository, passwordEncoder(), roleProvider, eventPublisher,
-                authProperties, verificationTokenOperations, userInvariants, passwordGenerator());
+                authProperties, verificationTokenOperations, verificationTokenRepository, userInvariants, passwordGenerator());
     }
 
     @Bean
