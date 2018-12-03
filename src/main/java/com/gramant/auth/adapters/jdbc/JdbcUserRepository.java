@@ -4,8 +4,12 @@ import com.gramant.auth.app.RoleProvider;
 import com.gramant.auth.domain.*;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
+import org.simpleflatmapper.converter.ContextualConverter;
+import org.simpleflatmapper.jdbc.spring.JdbcTemplateMapperFactory;
+import org.simpleflatmapper.map.property.ConverterProperty;
 import org.springframework.jdbc.core.BatchPreparedStatementSetter;
 import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.jdbc.core.ResultSetExtractor;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.transaction.annotation.Transactional;
@@ -18,6 +22,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 
+import static java.util.Optional.ofNullable;
 import static java.util.stream.Collectors.toList;
 
 @AllArgsConstructor
@@ -27,10 +32,21 @@ public class JdbcUserRepository implements UserRepository {
     private static final RowMapper<RoleId> ROLE_ID_ROW_MAPPER = (rs, rowNum) -> new RoleId(rs.getString("role_id"));
 
     private static final String SELECT_USERS_SQL = "SELECT id, email, password, enabled, last_login, non_locked FROM users ";
+    private static final String SELECT_USERS_JOIN_ROLES_SQL = "SELECT u.id AS id, u.email, u.password, u.enabled, u.non_locked as nonLocked, " +
+            "a.role_id AS roles_val FROM users u LEFT JOIN authorities a ON u.id = a.user_id ORDER BY u.email";
 
     private JdbcTemplate jdbcTemplate;
     private NamedParameterJdbcTemplate namedParameterJdbcTemplate;
     private RoleProvider roleProvider;
+    private final ResultSetExtractor<List<User>> RESULT_SET_EXTRACTOR =
+            JdbcTemplateMapperFactory
+                    .newInstance()
+                    .addKeys("id")
+                    .addColumnProperty(
+                            "roles_val",
+                            ConverterProperty.of((ContextualConverter<String, PrivilegedRole>) (in, context) ->
+                                    roleProvider.role(new RoleId(ofNullable(in).orElse(""))).orElse(PrivilegedRole.unknown())))
+                    .newResultSetExtractor(User.class);
 
     @Override
     @Transactional(readOnly = true)
@@ -66,11 +82,7 @@ public class JdbcUserRepository implements UserRepository {
     @Override
     @Transactional(readOnly = true)
     public Collection<User> list() {
-        List<UserData> users = jdbcTemplate.query(SELECT_USERS_SQL + " ORDER BY email",
-                USER_DATA_ROW_MAPPER);
-
-        //todo n запросов. Метод, который вернет все записи из authorities?
-        return users.stream().map(userData -> userData.asUser(getRoles(userData.getId()))).collect(toList());
+        return jdbcTemplate.query(SELECT_USERS_JOIN_ROLES_SQL, RESULT_SET_EXTRACTOR);
     }
 
     @Override

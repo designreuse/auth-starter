@@ -12,9 +12,3 @@ CREATE TABLE authorities (
   role_id VARCHAR(100) NOT NULL,
   CONSTRAINT pk_user_id_role_id PRIMARY KEY (user_id, role_id)
 );
-
-create table password_reset_token (
-  token varchar(100) constraint pk_password_reset_token primary key,
-  user_id varchar(100) references users(id),
-  expiry_date timestamp not null
-);
