@@ -33,7 +33,8 @@ public class TestConfig {
                 new PrivilegedRole(new RoleId("B"), Collections.singletonList(PrivilegeId.EDIT_USERS)),
                 new PrivilegedRole(new RoleId("C"), Collections.emptyList()),
                 new PrivilegedRole(new RoleId("D"), Collections.emptyList()),
-                new PrivilegedRole(new RoleId("E"), Collections.emptyList())
+                new PrivilegedRole(new RoleId("E"), Collections.emptyList()),
+                PrivilegedRole.unknown()
         );
     }
 }

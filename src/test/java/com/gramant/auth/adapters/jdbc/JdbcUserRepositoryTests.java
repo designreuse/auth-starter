@@ -15,14 +15,13 @@ import org.springframework.test.context.jdbc.SqlGroup;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Map;
 import java.util.Optional;
 
 import static java.util.stream.Collectors.toMap;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.*;
 
 @SpringBootTest
 @RunWith(SpringRunner.class)
@@ -52,6 +51,35 @@ public class JdbcUserRepositoryTests {
     public void getUser() {
         Optional<User> user = userRepository.get(UserId.of("user-1"));
         assertTrue(user.isPresent());
+
+        Optional<User> abc = userRepository.get(UserId.of("abc"));
+        assertFalse(abc.isPresent());
+    }
+
+    @Test
+    @SqlGroup({
+            @Sql(executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD, scripts = "/testdata/init.sql"),
+            @Sql(executionPhase = Sql.ExecutionPhase.AFTER_TEST_METHOD, scripts = "/testdata/clean.sql"),
+            @Sql("/testdata/users-records.sql")
+    })
+    public void getUserWithoutRoles() {
+        Optional<User> user = userRepository.get(UserId.of("user-1"));
+        assertEquals(roleProvider.role(RoleId.UNKNOWN).get(), user.get().roles().get(0));
+    }
+
+    @Test
+    @SqlGroup({
+            @Sql(executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD, scripts = "/testdata/init.sql"),
+            @Sql(executionPhase = Sql.ExecutionPhase.AFTER_TEST_METHOD, scripts = "/testdata/clean.sql"),
+            @Sql("/testdata/users-records.sql"),
+            @Sql("/testdata/authorities-records.sql")
+    })
+    public void findByEmailTest() {
+        Optional<User> userFound = userRepository.findByEmail("user1@mail.ru");
+        assertTrue(userFound.isPresent());
+
+        Optional<User> userNotFound = userRepository.findByEmail("user999@mail.ru");
+        assertFalse(userNotFound.isPresent());
     }
 
     @Test
@@ -80,5 +108,17 @@ public class JdbcUserRepositoryTests {
         assertEquals(roleProvider.role(new RoleId("C")).get(), user2.roles().get(1));
         assertEquals(roleProvider.role(new RoleId("D")).get(), user2.roles().get(2));
         assertEquals(roleProvider.role(new RoleId("E")).get(), user2.roles().get(3));
+    }
+
+    @Test
+    @SqlGroup({
+            @Sql(executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD, scripts = "/testdata/init.sql"),
+            @Sql(executionPhase = Sql.ExecutionPhase.AFTER_TEST_METHOD, scripts = "/testdata/clean.sql"),
+            @Sql("/testdata/users-records.sql"),
+            @Sql("/testdata/authorities-records.sql")
+    })
+    public void getAllTest() {
+        Collection<User> all = userRepository.getAll(Arrays.asList(UserId.of("user-1"), UserId.of("user-2")));
+        assertEquals(2, all.size());
     }
 }
