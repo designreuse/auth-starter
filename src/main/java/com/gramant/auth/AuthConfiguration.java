@@ -175,6 +175,7 @@ public class AuthConfiguration {
         return new NotificationEventListener(notifier);
     }
 
+    // todo: move to notification-starter
     static class NotificationEventListener {
 
         private final Notifier notifier;
@@ -213,10 +214,11 @@ public class AuthConfiguration {
             notifier.resetPasswordSuccess(event.user(), event.newPassword());
         }
 
-        @EventListener
-        @Async
-        public void processUsersMessagedEvent(UsersMessaged event) {
-            event.users().forEach(u -> notifier.communicate(u, event.message()));
-        }
+        // todo: implement directly in notification-starter resource
+//        @EventListener
+//        @Async
+//        public void processUsersMessagedEvent(UsersMessaged event) {
+//            event.users().forEach(u -> notifier.communicate(u, event.message()));
+//        }
     }
 }
