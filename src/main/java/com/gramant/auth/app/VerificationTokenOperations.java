@@ -5,8 +5,8 @@ import com.gramant.auth.adapters.rest.request.PasswordUpdateRequest;
 import com.gramant.auth.domain.*;
 import com.gramant.auth.domain.event.EmailConfirmationCompleted;
 import com.gramant.auth.domain.event.EmailConfirmationRequested;
-import com.gramant.auth.domain.event.PasswordRecoverCompleted;
-import com.gramant.auth.domain.event.PasswordRecoverRequested;
+import com.gramant.auth.domain.event.PasswordChangeCompleted;
+import com.gramant.auth.domain.event.PasswordChangeRequested;
 import com.gramant.auth.domain.ex.UserMissingException;
 import com.gramant.auth.domain.ex.VerificationTokenExpiredException;
 import com.gramant.auth.domain.ex.VerificationTokenNotFoundException;
@@ -56,7 +56,7 @@ public interface VerificationTokenOperations {
             oldToken.ifPresent(old -> verificationTokenRepository.remove(old.tokenId()));
 
             verificationTokenRepository.add(verificationToken);
-            eventPublisher.publishEvent(new PasswordRecoverRequested(passwordRecoverRequest.getEmail(), verificationToken));
+            eventPublisher.publishEvent(new PasswordChangeRequested(passwordRecoverRequest.getEmail(), verificationToken));
         }
 
         @Override
@@ -76,7 +76,7 @@ public interface VerificationTokenOperations {
             userRepository.update(user.withPassword(encoder.encode(passwordUpdateRequest.getPassword())));
             verificationTokenRepository.remove(token.tokenId());
 
-            eventPublisher.publishEvent(new PasswordRecoverCompleted(user));
+            eventPublisher.publishEvent(new PasswordChangeCompleted(user));
         }
 
         @Override

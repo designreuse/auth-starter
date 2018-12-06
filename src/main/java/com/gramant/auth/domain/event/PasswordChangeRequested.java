@@ -6,11 +6,11 @@ import lombok.experimental.Accessors;
 
 @Getter
 @Accessors(fluent = true)
-public class PasswordRecoverRequested {
+public class PasswordChangeRequested {
     private final String email;
     private final VerificationToken verificationToken;
 
-    public PasswordRecoverRequested(String email, VerificationToken verificationToken) {
+    public PasswordChangeRequested(String email, VerificationToken verificationToken) {
         this.email = email;
         this.verificationToken = verificationToken;
     }

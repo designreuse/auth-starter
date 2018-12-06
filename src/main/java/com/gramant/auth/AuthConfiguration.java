@@ -185,13 +185,13 @@ public class AuthConfiguration {
 
         @EventListener
         @Async
-        public void processPasswordRecoverRequestedEvent(PasswordRecoverRequested event) {
+        public void processPasswordRecoverRequestedEvent(PasswordChangeRequested event) {
             notifier.recoverPassword(event.verificationToken(), event.email());
         }
 
         @EventListener
         @Async
-        public void processPasswordRecoverCompletedEvent(PasswordRecoverCompleted event) {
+        public void processPasswordRecoverCompletedEvent(PasswordChangeCompleted event) {
             notifier.recoverPasswordSuccess(event.user());
         }
 
