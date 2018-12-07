@@ -85,54 +85,54 @@ public class AuthConfiguration {
         return new UserInvariants.Default(userRepository);
     }
 
+//    @Bean
+//    @ConditionalOnMissingBean
+//    public Notifier notifier() {
+//        return new Notifier() {
+//            @Override
+//            public void registrationSuccess(User createdUser) {
+//                throw new UnsupportedOperationException("not implemented!");
+//            }
+//
+//            @Override
+//            public void communicate(User user, String message) {
+//                throw new UnsupportedOperationException("not implemented!");
+//            }
+//
+//            @Override
+//            public void recoverPassword(VerificationToken token, String email) {
+//                throw new UnsupportedOperationException("not implemented!");
+//            }
+//
+//            @Override
+//            public void recoverPasswordSuccess(User user) {
+//                throw new UnsupportedOperationException("not implemented!");
+//            }
+//
+//            @Override
+//            public void confirmEmail(VerificationToken token, String email) {
+//                throw new UnsupportedOperationException("not implemented!");
+//            }
+//
+//            @Override
+//            public void confirmEmailSuccess(User user) {
+//                throw new UnsupportedOperationException("not implemented!");
+//            }
+//
+//            @Override
+//            public void resetPasswordSuccess(User user, String newPassword) {
+//                throw new UnsupportedOperationException("not implemented!");
+//            }
+//        };
+//    }
+
     @Bean
-    @ConditionalOnMissingBean
-    public Notifier notifier() {
-        return new Notifier() {
-            @Override
-            public void registrationSuccess(User createdUser) {
-                throw new UnsupportedOperationException("not implemented!");
-            }
-
-            @Override
-            public void communicate(User user, String message) {
-                throw new UnsupportedOperationException("not implemented!");
-            }
-
-            @Override
-            public void recoverPassword(VerificationToken token, String email) {
-                throw new UnsupportedOperationException("not implemented!");
-            }
-
-            @Override
-            public void recoverPasswordSuccess(User user) {
-                throw new UnsupportedOperationException("not implemented!");
-            }
-
-            @Override
-            public void confirmEmail(VerificationToken token, String email) {
-                throw new UnsupportedOperationException("not implemented!");
-            }
-
-            @Override
-            public void confirmEmailSuccess(User user) {
-                throw new UnsupportedOperationException("not implemented!");
-            }
-
-            @Override
-            public void resetPasswordSuccess(User user, String newPassword) {
-                throw new UnsupportedOperationException("not implemented!");
-            }
-        };
-    }
-
-    @Bean
-    public ManageUser manageUser(UserRepository userRepository, Notifier notifier, RoleProvider roleProvider,
+    public ManageUser manageUser(UserRepository userRepository, RoleProvider roleProvider,
                                  ApplicationEventPublisher eventPublisher, AuthProperties authProperties,
                                  VerificationTokenOperations verificationTokenOperations,
                                  VerificationTokenRepository verificationTokenRepository,
-                                 UserInvariants userInvariants) {
-        return new DefaultUserManager(userRepository, passwordEncoder(), roleProvider, eventPublisher,
+                                 UserInvariants userInvariants, PasswordEncoder passwordEncoder) {
+        return new DefaultUserManager(userRepository, passwordEncoder, roleProvider, eventPublisher,
                 authProperties, verificationTokenOperations, verificationTokenRepository, userInvariants, passwordGenerator());
     }
 
@@ -170,55 +170,55 @@ public class AuthConfiguration {
         return eventMulticaster;
     }
 
-    @Bean
-    public NotificationEventListener notificationEventListener(Notifier notifier) {
-        return new NotificationEventListener(notifier);
-    }
-
-    // todo: move to notification-starter
-    static class NotificationEventListener {
-
-        private final Notifier notifier;
-
-        NotificationEventListener(Notifier notifier) {
-            this.notifier = notifier;
-        }
-
-        @EventListener
-        @Async
-        public void processPasswordRecoverRequestedEvent(PasswordChangeRequested event) {
-            notifier.recoverPassword(event.verificationToken(), event.email());
-        }
-
-        @EventListener
-        @Async
-        public void processPasswordRecoverCompletedEvent(PasswordChangeCompleted event) {
-            notifier.recoverPasswordSuccess(event.user());
-        }
-
-        @EventListener
-        @Async
-        public void processEmailConfirmationRequestedEvent(EmailConfirmationRequested event) {
-            notifier.confirmEmail(event.token(), event.email());
-        }
-
-        @EventListener
-        @Async
-        public void processEmailConfirmationCompletedEvent(EmailConfirmationCompleted event) {
-            notifier.confirmEmailSuccess(event.user());
-        }
-
-        @EventListener
-        @Async
-        public void processPasswordResetCompletedEvent(PasswordResetCompleted event) {
-            notifier.resetPasswordSuccess(event.user(), event.newPassword());
-        }
-
-        // todo: implement directly in notification-starter resource
+//    @Bean
+//    public NotificationEventListener notificationEventListener(Notifier notifier) {
+//        return new NotificationEventListener(notifier);
+//    }
+//
+//    // todo: move to notification-starter
+//    static class NotificationEventListener {
+//
+//        private final Notifier notifier;
+//
+//        NotificationEventListener(Notifier notifier) {
+//            this.notifier = notifier;
+//        }
+//
 //        @EventListener
 //        @Async
-//        public void processUsersMessagedEvent(UsersMessaged event) {
-//            event.users().forEach(u -> notifier.communicate(u, event.message()));
+//        public void processPasswordRecoverRequestedEvent(PasswordChangeRequested event) {
+//            notifier.recoverPassword(event.verificationToken(), event.email());
 //        }
-    }
+//
+//        @EventListener
+//        @Async
+//        public void processPasswordRecoverCompletedEvent(PasswordChangeCompleted event) {
+//            notifier.recoverPasswordSuccess(event.user());
+//        }
+//
+//        @EventListener
+//        @Async
+//        public void processEmailConfirmationRequestedEvent(EmailConfirmationRequested event) {
+//            notifier.confirmEmail(event.token(), event.email());
+//        }
+//
+//        @EventListener
+//        @Async
+//        public void processEmailConfirmationCompletedEvent(EmailConfirmationCompleted event) {
+//            notifier.confirmEmailSuccess(event.user());
+//        }
+//
+//        @EventListener
+//        @Async
+//        public void processPasswordResetCompletedEvent(PasswordResetCompleted event) {
+//            notifier.resetPasswordSuccess(event.user(), event.newPassword());
+//        }
+//
+//        // todo: implement directly in notification-starter resource
+////        @EventListener
+////        @Async
+////        public void processUsersMessagedEvent(UsersMessaged event) {
+////            event.users().forEach(u -> notifier.communicate(u, event.message()));
+////        }
+//    }
 }

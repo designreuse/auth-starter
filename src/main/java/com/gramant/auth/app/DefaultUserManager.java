@@ -12,7 +12,6 @@ import com.gramant.auth.domain.event.UsersMessaged;
 import com.gramant.auth.domain.ex.UserMissingException;
 import lombok.AllArgsConstructor;
 import org.springframework.context.ApplicationEventPublisher;
-import org.springframework.security.core.parameters.P;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.validation.annotation.Validated;
